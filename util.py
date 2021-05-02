@@ -155,6 +155,13 @@ def create_merkle_tree(tot_leaves,leaf_sz):
                 
     return merkle_tree
 
+
+# for debuging the program
+def print_logs():
+    return True
+def get_debug_():
+    return True
+
 '''
 if _debug_:
     private_k,public_k=public_private_key()

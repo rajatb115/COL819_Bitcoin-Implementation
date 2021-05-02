@@ -11,43 +11,6 @@ def get_hash(data):
     val = data.hex()
     return util.create_hash(val)
 
-class Miner():
-    def __init__(self, idx, node_cnt, pow_zeros, leaf_sz, private_key, node_public_key, block_create_reward, block_create_time, transaction_charges):
-        
-        self.idx = idx
-        self.node_cnt = node_cnt
-        self.pow_zeros = pow_zeros
-        self.leaf_sz = leaf_sz
-        self.private_key = private_key
-        self.node_public_key = node_public_key
-        self.block_create_reward = block_create_reward
-        self.block_create_time = block_create_time
-        self.transaction_charges = transaction_charges
-        
-        self.blockchain = []
-        
-        if get_debug_():
-            self.debug()
-    
-    def debug(self):
-        print("\nPrinting the details of Miner")
-        print("Node id : ",self.idx)
-        print("Node count :",self.node_cnt)
-        print("proof of work :",self.pow_zeros)
-        print("leaf size of merkle tree :",self.leaf_sz)
-        print("Private key of node :",self.private_key)
-        print("list of public key of other nodes :",self.node_public_key)
-        print("Block creation reqard :",self.block_create_reward)
-        print("Block creation time :",self.block_create_time)
-        print("Transaction charge :",self.transaction_charges)
-        print("Blockchain :",self.blockchain)
-        print("\n")
-    
-    
-    def create_block(self):
-        print("creating a block")
-        
-
 class Node():
     
     def __init__(self,idx,node_cnt,pow_zeros,leaf_sz,common_list,message_limit):
@@ -119,14 +82,14 @@ class Node():
                 q_list[i].put(["PK",self.public_key,self.idx])
         
         # read the public key of other nodes in the network
-        temp =1
-        while(temp<self.node_cnt):
+        temp = 1
+        while(temp < self.node_cnt):
             try:
                 msg_lis = q_list[self.idx].get(block=True,timeout=20)
                 #print(msg_lis)
                 if msg_lis[0] == "PK":
                     self.node_public_key[msg_lis[2]] = msg_lis[1]
-                    temp +=1
+                    temp += 1
             except:
                 if get_debug_():
                     print("Still waiting....")
@@ -164,13 +127,26 @@ class Node():
                 
                 send_money.append([self.node_public_key[i].hex(),initial_amt])
                 
-                # create a transaction for these statments
-                transaction = Transaction(send_money, recieve_money,self.public_key,self.private_key,"COINBASE")
+            # create a transaction for these statments
+            transaction = Transaction(send_money, recieve_money, self.public_key, self.private_key, "COINBASE" )
+            
+            # create a initial block chain blockchain
+            miner.blockchain = Blockchain(self.pow_zeros, self.leaf_sz)
+            
+            # Start genesis block creation time
+            if util.print_logs():    
+                gblock_time = time.time()
+            
+            # add the genesis block
+            miner.blockchain.add_genesis_block([transaction])
+            
+            if util.print_logs():
+                print("Time taken to create Genesis block : ",str(time.time()-fblock_time))
+            
+            
+            
                 
-                # create a blockchain
                 
-                
-        
         
         '''
         Now the nodes will do transaction with each other the will be stored in the blockchain.
