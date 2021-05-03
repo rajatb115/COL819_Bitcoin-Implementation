@@ -128,7 +128,7 @@ class Node():
                 send_money.append([self.node_public_key[i].hex(),initial_amt])
                 
             # create a transaction for these statments
-            transaction = Transaction(send_money, recieve_money, self.public_key, self.private_key, "COINBASE" )
+            transaction = Transaction(recieve_money, send_money, self.public_key, self.private_key, "COINBASE" )
             
             # create a initial block chain blockchain
             miner.blockchain = Blockchain(self.pow_zeros, self.leaf_sz)

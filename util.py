@@ -164,6 +164,7 @@ def get_debug_():
 
 '''
 if _debug_:
+    # here the keys are in binary
     private_k,public_k=public_private_key()
     k = (sign_message("hello world",RSA_to_key(private_k)))
     print(verify_message("hello world",k,RSA_to_key(public_k)))
