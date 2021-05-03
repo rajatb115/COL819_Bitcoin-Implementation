@@ -11,6 +11,27 @@ def get_hash(data):
     val = data.hex()
     return util.create_hash(val)
 
+class Inputs():
+    def __init__(self,prev_txid="None",txr_index="None"):
+        self.prev_txid = prev_txid
+        self.txr_index = index
+    
+    def __str__(self):
+        message = "Inputs : Previous output reference = " + str(self.prev_txid)
+        message = message + " ; Prevoius index = " + str(self.txr_index)
+        return message
+    
+class Outputs():
+    def __init__(self, to_public_address, amount):
+        address = to_public_address
+        self.to_public_address_hash = util.create_hash(address)
+        self.amount = amount
+    
+    def __str__(self):
+        message = "Outputs : Hash of receiver = " + str(self.to_public_address_hash)
+        message = message + " ; Amount = " + str(self.amount) + " btc"
+        return message
+
 class Node():
     
     def __init__(self,idx,node_cnt,pow_zeros,leaf_sz,common_list,message_limit):
@@ -115,8 +136,12 @@ class Node():
         
         # node 0 is creating the genesis block
         if self.idx == 0:
-            recieve_money = []
-            send_money = []
+            # it will refer to the previous output
+            inputs = []
+            # current output
+            outputs = []
+            
+            inputs.append(Inputs())
             
             for i in range(self.node_cnt):
                 initial_amt = 5000
@@ -141,13 +166,12 @@ class Node():
             miner.blockchain.add_genesis_block([transaction])
             
             if util.print_logs():
-                print("Time taken to create Genesis block : ",str(time.time()-fblock_time))
-            
-            
-            
+                print("Time taken to create Genesis block : ",str(time.time()-fblock_time)) 
                 
                 
-        
+            
+            
+            
         '''
         Now the nodes will do transaction with each other the will be stored in the blockchain.
         '''
