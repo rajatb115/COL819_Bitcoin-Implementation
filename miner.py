@@ -26,7 +26,7 @@ class Miner():
         print("leaf size of merkle tree :",self.leaf_sz)
         print("Private key of node :",self.private_key)
         print("list of public key of other nodes :",self.node_public_key)
-        print("Block creation reqard :",self.block_create_reward)
+        print("Block creation reward :",self.block_create_reward)
         print("Block creation time :",self.block_create_time)
         print("Transaction charge :",self.transaction_charges)
         print("Blockchain :",self.blockchain)

@@ -1,5 +1,6 @@
 import time
 import util
+import Miner
 
 def get_debug_():
     return True
@@ -23,7 +24,7 @@ class Inputs():
     
 class Outputs():
     def __init__(self, to_public_address, amount):
-        address = to_public_address
+        address = to_public_address.hex()
         self.to_public_address_hash = util.create_hash(address)
         self.amount = amount
     
@@ -126,7 +127,7 @@ class Node():
         Since this node know each of the available node thus it can start mining. 
         '''
         
-        miner = Miner(self.idx, self.node_cnt, self.pow_zeros, self.leaf_sz, self.private_key, self.node_public_key, self.block_create_reward, self.block_create_time, self.transaction_charges)
+        miner = Miner.Miner(self.idx, self.node_cnt, self.pow_zeros, self.leaf_sz, self.private_key, self.node_public_key, self.block_create_reward, self.block_create_time, self.transaction_charges)
         
         
         '''
@@ -136,6 +137,11 @@ class Node():
         
         # node 0 is creating the genesis block
         if self.idx == 0:
+            
+            # create a initial block chain
+            block_chain = Blockchain(self.pow_zeros, self.leaf_sz)
+            miner.blockchain = block_chain
+            
             # it will refer to the previous output
             inputs = []
             # current output
@@ -150,24 +156,33 @@ class Node():
                 if i==0:
                     initial_amt = initial_amt + self.block_create_reward
                 
-                send_money.append([self.node_public_key[i].hex(),initial_amt])
-                
-            # create a transaction for these statments
-            transaction = Transaction(recieve_money, send_money, self.public_key, self.private_key, "COINBASE" )
+                out = Outputs(self.node_public_key[i],initial_amt)
+                outputs.append(out)
             
-            # create a initial block chain blockchain
-            miner.blockchain = Blockchain(self.pow_zeros, self.leaf_sz)
+            # create a transaction for these statments
+            transaction = Transaction(inputs, outputs, self.public_key, self.private_key, "COINBASE" )
             
             # Start genesis block creation time
             if util.print_logs():    
                 gblock_time = time.time()
             
-            # add the genesis block
+            # creating and adding the genesis block
             miner.blockchain.add_genesis_block([transaction])
             
+            # Printing the log 
             if util.print_logs():
-                print("Time taken to create Genesis block : ",str(time.time()-fblock_time)) 
+                print("Time taken to create Genesis block : ",str(time.time()-fblock_time))
                 
+            # Pushing the genesis block into stack so that all the nodes can read it
+            for i in range(self.node_cnt):
+                if i != 0:
+                    if util.get_debug_():
+                        print("Node 0 is pushing the genesis block to the stack of node : ",i)
+                    
+                q_list[i].put(["GENESIS_BLOCK",miner.blockchain,self.idx,i])
+            
+            # Update the unspend bitcoin for the current node
+            
                 
             
             
