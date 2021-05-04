@@ -8,4 +8,4 @@ class Blockchin():
         
     def add_genesis_block(self,transaction):
         # create a block for this transaction and add it to blockchain list
-        block = Block(self.pow_zeros, self.leaf_sz, transaction, "GENESIS_BLOCK",'0',0)
+        block = Block(self.pow_zeros, self.leaf_sz, transaction, "GENESIS_BLOCK","0",0)
