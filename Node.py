@@ -180,7 +180,7 @@ class Node():
             
             # Printing the log 
             if util.print_logs():
-                print("Time taken to create Genesis block : ",str(time.time()-fblock_time))
+                print("Time taken to create Genesis block : ",str(time.time()-gblock_time))
                 
             # Pushing the genesis block into stack so that all the nodes can read it
             for i in range(self.node_cnt):

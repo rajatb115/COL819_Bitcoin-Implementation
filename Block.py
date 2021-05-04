@@ -10,8 +10,8 @@ class Block():
         self.merkle_tree = self.merkle_tree()
         self.index = index
         self.current_block_hash = ''
-        self.current_block_hash,self.nounce = self.proof_of_work()
         self.root_merkle_tree = self.get_root()
+        self.current_block_hash,self.nounce = self.proof_of_work()
         
         if util.get_debug():
             self.debug()
