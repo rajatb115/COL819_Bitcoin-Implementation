@@ -169,8 +169,6 @@ class Node():
             # create a transaction for these statments
             transaction = Transaction.Transaction(tx_inputs, tx_outputs, self.public_key, self.private_key, "COIN-BASE" )
             
-            print("\n hello \n")
-            
             # Start genesis block creation time
             if util.print_logs():    
                 gblock_time = time.time()
@@ -191,7 +189,6 @@ class Node():
                 q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
             
             # Update the unspend bitcoin for the current node
-            
             
             
             

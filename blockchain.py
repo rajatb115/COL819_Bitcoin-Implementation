@@ -22,3 +22,4 @@ class Blockchain():
         if util.get_debug():
             print("Started adding the genesis block")
         block = Block.Block(self.pow_zeros, self.leaf_sz, transaction, "GENESIS-BLOCK","0",0)
+        

@@ -8,14 +8,11 @@ from Crypto import Random
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 
-# for debugging the code
-_debug_ = True
-
 def create_hash(s):
     uni = s.encode()
     hash_object = hashlib.sha256(uni)
     hex_dig = hash_object.hexdigest()
-    if _debug_:
+    if get_debug():
         print(hex_dig)
     return(hex_dig)
 
@@ -29,7 +26,7 @@ def public_private_key():
     #Generating the public key (RsaKey object) from the private key
     public_key = private_key.publickey()
     
-    if _debug_:
+    if get_debug():
         print("Type of private key and public key")
         print(type(private_key), type(public_key))
     
@@ -51,7 +48,7 @@ def public_private_key():
     #public_pem = public_key.export_key().decode()
     public_pem = public_key.export_key()
     
-    if _debug_:
+    if get_debug():
         print("Type of private pem and public pem")
         print(type(private_pem), type(public_pem))
         print("Private pem and public pem")
@@ -67,7 +64,7 @@ def sign_message(message,pri_key):
     d.update(message.encode())
     sig = signer.sign(d)
     
-    if _debug_:
+    if get_debug():
         print(sig.hex())
     
     return sig
@@ -86,7 +83,7 @@ def create_merkle_tree(tot_leaves,leaf_sz):
     leaves = tot_leaves
     len_leaves = len(leaves)
     
-    if _debug_:
+    if get_debug():
         print("total number of leaves :",len_leaves)
         print("leaves :",leaves)
     
@@ -106,7 +103,7 @@ def create_merkle_tree(tot_leaves,leaf_sz):
         for i in range(leaves_to_add):
             leaves.append(leaves[-1])
 
-    if _debug_:
+    if get_debug():
         print("New leaves :",leaves)
     
     merkle_tree = [leaves]
@@ -124,7 +121,7 @@ def create_merkle_tree(tot_leaves,leaf_sz):
                 cnt+=1
             pair_leaves.append(temp1)
         
-        if _debug_:
+        if get_debug():
             print("pair_leaves :",pair_leaves)
         
         leaves = []
@@ -137,7 +134,7 @@ def create_merkle_tree(tot_leaves,leaf_sz):
             
         
         len_leaves = len(leaves)
-        if _debug_:
+        if get_debug():
             print("total number of leaves :",len_leaves)
             print("leaves :",leaves)
         
