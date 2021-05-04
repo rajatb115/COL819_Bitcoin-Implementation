@@ -15,7 +15,7 @@ class Miner():
         
         self.blockchain = None
         
-        if util.get_debug_():
+        if util.get_debug():
             self.debug()
     
     def debug(self):

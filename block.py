@@ -1,6 +1,6 @@
 import util
 
-class block():
+class Block():
     def __init__(self, pow_zeros, leaf_sz, transaction, b_type, prev_block_hash, index):
         self.pow_zeros = pow_zeros
         self.leaf_sz = leaf_sz
@@ -72,7 +72,7 @@ class block():
         message_hash = util.create_hash(message + str(temp_nounce))
         
         # check if the number of pow_zeros digit of message_hash is equal to zero
-        while(!self.check_pow_zeros(message_hash)):
+        while(self.check_pow_zeros(message_hash) == False):
 
             if util.get_debug():
                 print("Testing nounce : ",str(temp_nounce)," ; Temp hash of message : ",str(message_hash))

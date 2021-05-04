@@ -1,6 +1,8 @@
 import time
 import util
 import Miner
+import blockchain
+import Transaction
 
 def get_keys():
     return util.public_private_key()
@@ -12,7 +14,7 @@ def get_hash(data):
 class Inputs():
     def __init__(self,prev_txid="None",txr_index="None"):
         self.prev_txid = prev_txid
-        self.txr_index = index
+        self.txr_index = txr_index
     
     def __str__(self):
         message = "Inputs : Previous output reference = " + str(self.prev_txid)
@@ -110,11 +112,11 @@ class Node():
                     self.node_public_key[msg_lis[2]] = msg_lis[1]
                     temp += 1
             except:
-                if get_debug_():
+                if util.get_debug():
                     print("Still waiting....")
                 pass
             
-        if get_debug_():
+        if util.get_debug():
             print("Reading of public key for node ",self.idx," is completed")
             print(self.node_public_key,"\n")
         
@@ -135,18 +137,23 @@ class Node():
         # node 0 is creating the genesis block
         if self.idx == 0:
             
+            if util.get_debug():
+                print("idx of the current node :",str(self.idx))
+            
             # create a initial block chain
-            block_chain = Blockchain(self.pow_zeros, self.leaf_sz)
+            block_chain = blockchain.Blockchain(self.pow_zeros, self.leaf_sz)
             miner.blockchain = block_chain
             
+            
+            
             # it will refer to the previous output
-            inputs = []
+            tx_inputs = []
             # current output
-            outputs = []
+            tx_outputs = []
             
-            inputs.append(Inputs())
+            tx_inputs.append(Inputs())
             
-            for i in range(self.node_cnt):
+            for i in range(int(self.node_cnt)):
                 initial_amt = 5000
                 
                 # node 0 will add the genesis block so will get block creation reward
@@ -154,10 +161,15 @@ class Node():
                     initial_amt = initial_amt + self.block_create_reward
                 
                 out = Outputs(self.node_public_key[i],initial_amt)
-                outputs.append(out)
+                tx_outputs.append(out)
+                
+                if util.get_debug():
+                    print("Adding money in btc :",initial_amt," to node :",i)
             
             # create a transaction for these statments
-            transaction = Transaction(inputs, outputs, self.public_key, self.private_key, "COIN-BASE" )
+            transaction = Transaction.Transaction(tx_inputs, tx_outputs, self.public_key, self.private_key, "COIN-BASE" )
+            
+            print("\n hello \n")
             
             # Start genesis block creation time
             if util.print_logs():    
@@ -173,14 +185,13 @@ class Node():
             # Pushing the genesis block into stack so that all the nodes can read it
             for i in range(self.node_cnt):
                 if i != 0:
-                    if util.get_debug_():
+                    if util.get_debug():
                         print("Node 0 is pushing the genesis block to the stack of node : ",i)
                     
                 q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
             
             # Update the unspend bitcoin for the current node
             
-                
             
             
             
