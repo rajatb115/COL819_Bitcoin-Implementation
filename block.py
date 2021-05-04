@@ -9,8 +9,8 @@ class block():
         self.prev_block_hash = prev_block_hash
         self.merkle_tree = self.merkle_tree()
         self.index = index
-        self.nounce = self.proof_of_work()
         self.current_block_hash = ''
+        self.current_block_hash,self.nounce = self.proof_of_work()
         self.root_merkle_tree = self.get_root()
         
     def get_root():
@@ -25,6 +25,21 @@ class block():
         
         # return the list (merkle tree)
         return util.create_merkle_tree(lis,self.leaf_sz)
+    
+    
+    # Function to check the number of leading zeros in the message_hash
+    def check_pow_zeros(message_hash):
+        cnt = 0
+        for i in range(len(message_hash)):
+            if message_hash[i] == "0":
+                cnt+=1
+            else:
+                break
+        if cnt>=self.pow_zeros:
+            return True
+        else:
+            return False
+    
     
     def proof_of_work(self):
         
@@ -45,4 +60,10 @@ class block():
             if util.get_debug():
                 print("Testing nounce : ",str(temp_nounce)," ; Temp hash of message : ",str(message_hash))
             
-            
+            temp_nounce = temp_nounce +1
+            message_hash = util.create_hash(message + str(temp_nounce))
+        
+        if util.get_debug():
+            print("Final nounce : ",str(temp_nounce)," ; Final hash of block : ",str(message_hash))
+        
+        return (message_hash,temp_nounce)
