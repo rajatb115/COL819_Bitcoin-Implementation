@@ -13,7 +13,24 @@ class block():
         self.current_block_hash,self.nounce = self.proof_of_work()
         self.root_merkle_tree = self.get_root()
         
-    def get_root():
+        if util.get_debug():
+            self.debug()
+    
+    def debug(self):
+        print("")
+        print("Printing block detail of index :",str(self.index))
+        print("proof of work zeros :",str(self.pow_zeros))
+        print("leaf size of merkle tree :",str(self.leaf_sz))
+        print("Transaction :",str(self.transaction))
+        print("Block type :",str(self.b_type))
+        print("Hash of previous block :",str(self.prev_block_hash))
+        print("Current block hash :",str(self.current_block_hash))
+        print("Merkle Tree :",str(self.merkle_tree))
+        print("Root of the merkle Tree :",str(self.root_merkle_tree))
+        print("")
+    
+        
+    def get_root(self):
         # root of the merkle tree will be at the end of the 2D list
         return self.merkle_tree[-1][0]
     
@@ -28,7 +45,7 @@ class block():
     
     
     # Function to check the number of leading zeros in the message_hash
-    def check_pow_zeros(message_hash):
+    def check_pow_zeros(self,message_hash):
         cnt = 0
         for i in range(len(message_hash)):
             if message_hash[i] == "0":

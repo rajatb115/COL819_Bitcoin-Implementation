@@ -2,9 +2,6 @@ import time
 import util
 import Miner
 
-def get_debug_():
-    return True
-
 def get_keys():
     return util.public_private_key()
 
@@ -61,7 +58,7 @@ class Node():
         
         self.start_time = time.time()
         
-        if get_debug_():
+        if util.get_debug():
             self.debug()
         
     def debug(self):
@@ -160,7 +157,7 @@ class Node():
                 outputs.append(out)
             
             # create a transaction for these statments
-            transaction = Transaction(inputs, outputs, self.public_key, self.private_key, "COINBASE" )
+            transaction = Transaction(inputs, outputs, self.public_key, self.private_key, "COIN-BASE" )
             
             # Start genesis block creation time
             if util.print_logs():    
@@ -179,7 +176,7 @@ class Node():
                     if util.get_debug_():
                         print("Node 0 is pushing the genesis block to the stack of node : ",i)
                     
-                q_list[i].put(["GENESIS_BLOCK",miner.blockchain,self.idx,i])
+                q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
             
             # Update the unspend bitcoin for the current node
             
