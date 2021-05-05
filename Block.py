@@ -18,7 +18,7 @@ class Block():
     
     def debug(self):
         print("")
-        print("Printing block detail of index :",str(self.index))
+        print("# Printing block detail of index :",str(self.index))
         print("proof of work zeros :",str(self.pow_zeros))
         print("leaf size of merkle tree :",str(self.leaf_sz))
         print("Transaction :",str(self.transaction))
@@ -61,7 +61,7 @@ class Block():
     def proof_of_work(self):
         
         if util.get_debug():
-            print("Starting proof of work : ")
+            print("# Starting computing proof of work... ")
         
         # current block hash is equal to the hash of (previous block + root of merkle tree + nounce)
         # if first pow_zeros digit of hash is equal to zero then out nounce is true.
