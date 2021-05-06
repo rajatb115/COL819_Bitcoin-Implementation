@@ -19,6 +19,12 @@ class Transaction():
     def getTxn_id(self):
         message = self.txn_message()
         return util.create_hash(message)
+    
+    def get_total_txn_output(self):
+        return len(self.txn_output)
+    
+    def get_total_txn_input(self):
+        return len(self.txn_input)
         
     def txn_message(self):
         message = ""

@@ -6,7 +6,10 @@ class Blockchain():
         self.pow_zeros = pow_zeros
         self.leaf_sz = leaf_sz
         self.blockchain = []
-        self.utox = set()
+        self.utxo = set()
+        self.utxo_mapping = dict({})
+        self.index_of_confirmed_block = None
+        self.height_of_current_block = None
         
         if util.get_debug():
             self.debug()
@@ -16,14 +19,59 @@ class Blockchain():
         print("Inside Blockchain")
         print("Blockchain : proof of work -",self.pow_zeros)
         print("Blockchain : leaf size -",self.leaf_sz)
-        print("Unspent transactions -",str(self.utox))
+        print("Unspent transactions -",str(self.utxo))
+        print("Index of the confirmed block -",self.index_of_confirmed_block)
+        print("Height of the current block -",self.height_of_current_block)
         print("")
+        
+    def UTXO(self, index, txn_hash):
+        message = str(index)+ " : " + str(txn_hash)
+        return message
     
-    def add_UTXO(self,transaction):
-        for txn in transaction:
-            for i in range (len(txn.txn_output)):
-                message = 
-    
+    def isValid_transaction(self,txn):
+        inputs = 0
+        outputs = 0
+        
+        utxo_t = set()
+        
+        if txn.txn_type != "COIN-BASE":
+            for i in range(txn.get_total_txn_input()):
+                input_tx = txn.txn_input[i]
+                utxo_temp = self.UTXO(input_tx.txr_index,input_tx.prev_txid)
+                if not utxo_temp in self.utxo:
+                    return False
+                if utxo_temp in utxo_t:
+                    return False
+
+                output_txn = self.utxo_mapping[utxo_temp]
+
+                utxo_t.add(utxo_temp)
+
+                inputs = inputs + output_txn.amount
+            
+        for i in range(txn.get_total_txn_output()):
+            output_txn = txn.txn_output[i]
+            if output_txn < 0:
+                return False
+            outputs = outputs + output_txn.amount
+            
+        return inputs>=outputs
+            
+
+    def add_UTXO(self, transaction):
+        try:
+            for txn in transaction:
+                if self.isValid_transaction(txn):
+                    for idx in range (len(txn.txn_output)):
+                        index = idx
+                        txn_hash = txn.txn_output[idx].txn_id
+                        self.utxo.add(self.UTXO(index,txn_hash))
+                        self.utxo_mapping[self.UTXO(index,txn_hash)] = txn.txn_output[index]
+                    
+        except:
+            return False
+        return True
+                
     def add_genesis_block(self,transaction):
         # create a block for this transaction and add it to blockchain list
         if util.get_debug():
@@ -35,10 +83,20 @@ class Blockchain():
             print("# Completed the creation of block")
         
         # Listing the unspend transactions
-        self.add_UTXO(transaction)
+        temp = self.add_UTXO(transaction)
         
+        # check whether it is added succesfully or not
+        if (temp == False and util.get_debug()):
+            print("# Unable to add the UTXOS for transaction.")
+        if (temp == True and util.get_debug()):
+            print("# Add the UTXOS for transaction successfully.")
+            
+        # block number 0 is the genesis block and it is confirmed initially
+        self.index_of_confirmed_block = 0
+        
+        # block 0 is the genesis block and its height is 0
+        self.height_of_current_block = 0
     
-    def add_block(self,transaction):
-        
-        
-        
+       
+    
+    # Need to add a normal block
