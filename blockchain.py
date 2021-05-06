@@ -22,6 +22,9 @@ class Blockchain():
         print("Unspent transactions -",str(self.utxo))
         print("Index of the confirmed block -",self.index_of_confirmed_block)
         print("Height of the current block -",self.height_of_current_block)
+        print("Blockchain list")
+        for i in self.blockchain:
+            print(i)
         print("")
         
     def UTXO(self, index, txn_hash):
@@ -91,6 +94,9 @@ class Blockchain():
         
         if util.get_debug():
             print("# Completed the creation of block")
+            
+        # Adding the Genesis block to the blockchain
+        self.blockchain.append(block)
         
         # Listing the unspend transactions
         temp = self.add_UTXO(transaction)
@@ -106,7 +112,9 @@ class Blockchain():
         
         # block 0 is the genesis block and its height is 0
         self.height_of_current_block = 0
+        
+        if util.get_debug():
+            self.debug()
     
-       
     
     # Need to add a normal block
