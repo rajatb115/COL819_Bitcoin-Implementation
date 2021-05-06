@@ -34,24 +34,26 @@ class Blockchain():
         
         utxo_t = set()
         
-        if txn.txn_type != "COIN-BASE":
-            for i in range(txn.get_total_txn_input()):
-                input_tx = txn.txn_input[i]
-                utxo_temp = self.UTXO(input_tx.txr_index,input_tx.prev_txid)
-                if not utxo_temp in self.utxo:
-                    return False
-                if utxo_temp in utxo_t:
-                    return False
+        if txn.txn_type == "COIN-BASE":
+            return True
+        
+        for i in range(txn.get_total_txn_input()):
+            input_tx = txn.txn_input[i]
+            utxo_temp = self.UTXO(input_tx.txr_index,input_tx.prev_txid)
+            if not utxo_temp in self.utxo:
+                return False
+            if utxo_temp in utxo_t:
+                return False
 
-                output_txn = self.utxo_mapping[utxo_temp]
+            output_txn = self.utxo_mapping[utxo_temp]
 
-                utxo_t.add(utxo_temp)
+            utxo_t.add(utxo_temp)
 
-                inputs = inputs + output_txn.amount
+            inputs = inputs + output_txn.amount
             
         for i in range(txn.get_total_txn_output()):
             output_txn = txn.txn_output[i]
-            if output_txn < 0:
+            if output_txn.amount < 0:
                 return False
             outputs = outputs + output_txn.amount
             
@@ -62,13 +64,21 @@ class Blockchain():
         try:
             for txn in transaction:
                 if self.isValid_transaction(txn):
+                    
+                    if util.get_debug():
+                        print("# This transaction is valid")
+                    
                     for idx in range (len(txn.txn_output)):
                         index = idx
-                        txn_hash = txn.txn_output[idx].txn_id
+                        txn_hash = txn.txn_id
                         self.utxo.add(self.UTXO(index,txn_hash))
                         self.utxo_mapping[self.UTXO(index,txn_hash)] = txn.txn_output[index]
+                else:
+                    if util.get_debug():
+                        print("# There is a false transaction")
                     
-        except:
+        except Exception as e:
+            print(e)
             return False
         return True
                 
