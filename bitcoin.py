@@ -3,15 +3,14 @@ import os
 import sys
 import multiprocessing 
 import Node
+import util
 
 if __name__ == "__main__":
     
-    # To print all the debug messages
-    _debug_ = True
 
     node_cnt = int(sys.argv[1])
     
-    if _debug_:
+    if util.get_debug():
         print("number of nodes :",node_cnt)
 
     '''
@@ -23,14 +22,14 @@ if __name__ == "__main__":
     for i in range(node_cnt):
         q_list.append(multiprocessing.Queue())
     
-    if _debug_:
+    if util.get_debug():
         print("queue_list :",q_list)
     
     # number of zeros in proof of work and leaf size for merkel tree
     pow_zeros = int(sys.argv[2])
     leaf_sz = int(sys.argv[3])
     
-    if _debug_:
+    if util.get_debug():
         print("Proof of work Zeros :",pow_zeros)
         print("leaf size :",leaf_sz)
     
