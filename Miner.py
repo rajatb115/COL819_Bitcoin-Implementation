@@ -19,7 +19,8 @@ class Miner():
             self.debug()
     
     def debug(self):
-        print("\nPrinting the details of Miner")
+        print("")
+        print("Printing the details of Miner")
         print("Node id : ",self.idx)
         print("Node count :",self.node_cnt)
         print("proof of work :",self.pow_zeros)

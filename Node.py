@@ -64,6 +64,7 @@ class Node():
             self.debug()
         
     def debug(self):
+        print("")
         print("Printing the details of node")
         print("Node id : ",self.idx)
         print("Node count :",self.node_cnt)

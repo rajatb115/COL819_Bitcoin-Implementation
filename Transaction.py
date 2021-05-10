@@ -16,6 +16,22 @@ class Transaction():
         # get the hash of the transaction
         self.txn_id = self.getTxn_id()
         
+        if util.get_debug():
+            self.debug()
+            
+    def debug(self):
+        print("")
+        print("Transaction output :",self.txn_output)
+        print("Transaction input :",self.txn_input)
+        print("Public Key :",self.public_key)
+        print("Private Key :",self.private_key)
+        print("Transaction type :",self.txn_type)
+        print("Transaction time :",self.txn_time)
+        print("Transaction signature :",self.txn_sign)
+        print("Transaction ID :",self.txn_id)
+        print("")
+        
+        
     def getTxn_id(self):
         message = self.txn_message()
         return util.create_hash(message)
