@@ -20,11 +20,15 @@ class Blockchain():
         print("Blockchain : proof of work -",self.pow_zeros)
         print("Blockchain : leaf size -",self.leaf_sz)
         print("Unspent transactions -",str(self.utxo))
+        print("UTXO mapping :")
+        for i in self.utxo_mapping.keys():
+            print(i," - ",self.utxo_mapping[i])
         print("Index of the confirmed block -",self.index_of_confirmed_block)
         print("Height of the current block -",self.height_of_current_block)
         print("Blockchain list")
         for i in self.blockchain:
             print(i)
+        
         print("")
         
     def UTXO(self, index, txn_hash):
@@ -61,7 +65,7 @@ class Blockchain():
             outputs = outputs + output_txn.amount
             
         return inputs>=outputs
-            
+
 
     def add_UTXO(self, transaction):
         try:
@@ -69,7 +73,7 @@ class Blockchain():
                 if self.isValid_transaction(txn):
                     
                     if util.get_debug():
-                        print("# This transaction is valid")
+                        print("# This transaction is valid.")
                     
                     for idx in range (len(txn.txn_output)):
                         index = idx
@@ -78,7 +82,7 @@ class Blockchain():
                         self.utxo_mapping[self.UTXO(index,txn_hash)] = txn.txn_output[index]
                 else:
                     if util.get_debug():
-                        print("# There is a false transaction")
+                        print("# There is a false transaction.")
                     
         except Exception as e:
             print(e)

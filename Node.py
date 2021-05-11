@@ -54,11 +54,17 @@ class Node():
         # hash of public key
         self.hash_public_key = get_hash(self.public_key)
         
-        self.bitcoins = 0
+        self.bitcoin = 0
         self.unspent_bitcoin = {}
         self.transaction_charges = 1
         
         self.start_time = time.time()
+        
+        self.dict_public_key_nodeid = {}
+        self.nodeid_public_key = []
+        self.prev_trans_key = None
+        self.prev_trans_verified = False
+        self.prev_trans_time = 0
         
         if util.get_debug():
             self.debug()
@@ -79,23 +85,115 @@ class Node():
         print("Node Public key :",self.public_key)
         print("Node Private key :",self.private_key)
         print("Node hash of public key :",self.hash_public_key)
-        print("Current Bitcoins :",self.bitcoins)
-        print("Unspent bitcoins :")
-        for i in self.unspent_bitcoin:
-            print(i)
+        print("Current Bitcoins :",self.bitcoin)
+        print("Unspent bitcoins :",self.unspent_bitcoin)
         print("transaction charges :",self.transaction_charges)
         print("")
         
+    def update_bitcoin_details(self , block):
+        
+        if util.get_debug():
+            print("")
+            print("# Block is confirmed and updating the details.")
+            print("# Node index :",self.idx)
+            print("# Length of the block transaction :",len(block.transaction))
+            print("")
+            
+        for i in range(len(block.transaction)):
+            txn = block.transaction[i]
+            txnid = txn.txn_id
+            
+            '''
+            check all the output transactions of the block and add all the amount 
+            '''
+            for itr , out in enumerate(txn.txn_output):
+                reciever = out.to_public_address_hash
+                
+                # check if the current node is recieved any bitcoin
+                if reciever == self.hash_public_key:
+                    
+                    # creating a unique key to store this amount to unspent coin
+                    temp_key  = str(itr) + str(":") + str(txnid)
+                    
+                    if util.get_debug():
+                        print(self.unspent_bitcoin.keys())
+                        print(temp_key)
+                        
+                    if temp_key not in self.unspent_bitcoin.keys():
+                    
+                        # if the transaction type is COIN-BASE then this means
+                        # this is node creation amount + genesis block creation coin.
+                        if txn.txn_type == "COIN-BASE":
+                            
+                            # If it is node 0 then it will have initial amount + block creation reward
+                            if self.idx==0:
+                                if (util.print_logs()):
+                                    print("Node "+str(self.idx)+" recieved " +str(out.amount-self.block_create_reward)+ " btc as initial node amount.")
+                                    print("Node "+str(self.idx)+" recieved "+str(self.block_create_reward) + " btc as the block creation amount.")
+                        
+                            # If the node is not node 0 then it won't recieve the block creation reward
+                            else:
+                                if (util.print_logs()):
+                                    print("Node "+str(self.idx)+" recieved " +str(out.amount-self.block_create_reward)+ " btc as initial node amount.")
+                                    
+                            self.bitcoin = self.bitcoin + out.amount
+                            self.unspent_bitcoin[temp_key] = [None, out.amount, txnid, itr]
+                        
+                        # if the transsaction type is not COIN-BASE            
+                        else:
+                            #If money is recieved from some other node
+                            sender = self.dict_public_key_nodeid[txn.public_key]
+                            if (self.idx != sender):
+                                if (util.print_logs()):
+                                    print("Node "+str(self.idx)+" recieved "+str(out.amount)+" from Node "+str(sender))
+                                    
+                                self.bitcoin = self.bitcoin + out.amount
+                                self.unspent_bitcoin[temp_key] = [txn.public_key, out.amount, txnid, itr]
+                                
+                    else:
+                        if util.print_logs():
+                            print("This transaction has already been accounted.")
+            
+            # Now subtract the spend money from the bitcoin
+            sender = self.dict_public_key_nodeid[txn.public_key]
+            reciever = self.public_key
+            # for coinbase transaction the input is none so avoid that 
+            if (sender != reciever):
+                if(txn.txn_type != "COIN-BASE"):
+                    '''
+                    check all the input transactions of the block and subtract the amount
+                    '''
+                    for itr, inp in enumerate(txn.txn_input):
+                        temp_key = str(itr)+str(":")+str(inp.prev_txid)
+                        
+                        # subtract the bitcoin for the above key 
+                        self.bitcoin = self.bitcoin - self.unspent_bitcoin[temp_key][1]
+                        del self.unspent_bitcoin[temp_key]
+                        
+                        # if detail of the output is present in the input list then key will match
+                        if self.prev_trans_key != None and temp_key == self.prev_trans_key:
+                            # If key match then this means it is validated
+                            self.prev_trans_verified = True
+                            self.last_trans_key = None
+                            if util.print_logs():
+                                print("Time taken by Node",self.idx,"for transaction verification is",time.time()-self.prev_trans_time)
+                    
+                else:
+                    if util.print_logs():
+                        print("COIN-BASE: Transaction no input found.")
+                
+            
     def run_node(self,q_list):
         
         # All nodes will share their public key to eachother
-        self.node_public_key = []
+        self.nodeid_public_key = []
         
         for i in range(self.node_cnt):
             if i!= self.idx:
-                self.node_public_key.append(None)
+                self.nodeid_public_key.append(None)
             else:
-                self.node_public_key.append(self.public_key)
+                self.nodeid_public_key.append(self.public_key)
+                self.dict_public_key_nodeid[self.public_key] = self.idx
 
         # Broadcast my public key to all the nodes so a node will need (n-1) messages to put in
         # the shared memory of each node
@@ -110,7 +208,8 @@ class Node():
                 msg_lis = q_list[self.idx].get(block=True,timeout=20)
                 #print(msg_lis)
                 if msg_lis[0] == "PK":
-                    self.node_public_key[msg_lis[2]] = msg_lis[1]
+                    self.nodeid_public_key[msg_lis[2]] = msg_lis[1]
+                    self.dict_public_key_nodeid[msg_lis[1]] = msg_lis[2]
                     temp += 1
             except:
                 if util.get_debug():
@@ -119,7 +218,7 @@ class Node():
             
         if util.get_debug():
             print("Reading of public key for node ",self.idx," is completed")
-            print(self.node_public_key,"\n")
+            print(self.nodeid_public_key,"\n")
         
         
         '''
@@ -127,7 +226,7 @@ class Node():
         Since this node know each of the available node thus it can start mining. 
         '''
         
-        miner = Miner.Miner(self.idx, self.node_cnt, self.pow_zeros, self.leaf_sz, self.private_key, self.node_public_key, self.block_create_reward, self.block_create_time, self.transaction_charges)
+        miner = Miner.Miner(self.idx, self.node_cnt, self.pow_zeros, self.leaf_sz, self.private_key, self.nodeid_public_key, self.block_create_reward, self.block_create_time, self.transaction_charges)
         
         
         '''
@@ -145,8 +244,6 @@ class Node():
             block_chain = blockchain.Blockchain(self.pow_zeros, self.leaf_sz)
             miner.blockchain = block_chain
             
-            
-            
             # it will refer to the previous output
             tx_inputs = []
             # current output
@@ -161,7 +258,7 @@ class Node():
                 if i==0:
                     initial_amt = initial_amt + self.block_create_reward
                 
-                out = Outputs(self.node_public_key[i],initial_amt)
+                out = Outputs(self.nodeid_public_key[i],initial_amt)
                 tx_outputs.append(out)
                 
                 if util.get_debug():
@@ -181,6 +278,17 @@ class Node():
             if util.print_logs():
                 print("Time taken to create Genesis block : ",str(time.time()-gblock_time))
                 
+            '''
+            # Update the unspend bitcoin for the current node do if 
+            # the block is confirmed and since it is genesis block we assume that it is confirmed
+            '''
+            
+            genesis_blockchain = miner.blockchain
+            self.update_bitcoin_details(genesis_blockchain.blockchain[0])
+            
+            if util.get_debug():
+                self.debug()
+            
             # Pushing the genesis block into stack so that all the nodes can read it
             for i in range(self.node_cnt):
                 if i != 0:
@@ -188,10 +296,6 @@ class Node():
                         print("Node 0 is pushing the genesis block to the stack of node : ",i)
                     
                 q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
-            
-            # Update the unspend bitcoin for the current node
-            
-            
             
         '''
         Now the nodes will do transaction with each other the will be stored in the blockchain.

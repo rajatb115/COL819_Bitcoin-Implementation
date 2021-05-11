@@ -5,7 +5,9 @@ class Transaction():
     def __init__(self, txn_input, txn_output, public_key, private_key, txn_type):
         self.txn_output = txn_output
         self.txn_input = txn_input
-        self.public_key = public_key
+        
+        # here public key is the sender which send money to other nodes
+        self.public_key = public_key 
         self.private_key = private_key
         self.txn_type = txn_type
         self.txn_time = time.time()
