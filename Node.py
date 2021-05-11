@@ -129,7 +129,7 @@ class Node():
                             if self.idx==0:
                                 if (util.print_logs()):
                                     print("Node "+str(self.idx)+" recieved " +str(out.amount-self.block_create_reward)+ " btc as initial node amount.")
-                                    print("Node "+str(self.idx)+" recieved "+str(self.block_create_reward) + " btc as the block creation amount.")
+                                    print("Node "+str(self.idx)+" recieved "+str(self.block_create_reward) + " btc as Genesis block creation reward.")
                         
                             # If the node is not node 0 then it won't recieve the block creation reward
                             else:
@@ -179,7 +179,7 @@ class Node():
                                 print("Time taken by Node",self.idx,"for transaction verification is",time.time()-self.prev_trans_time)
                     
                 else:
-                    if util.print_logs():
+                    if util.get_debug():
                         print("COIN-BASE: Transaction no input found.")
                 
             
@@ -235,7 +235,7 @@ class Node():
         '''
         
         # node 0 is creating the genesis block
-        if self.idx == 0:
+        if(self.idx == 0):
             
             if util.get_debug():
                 print("idx of the current node :",str(self.idx))
@@ -292,11 +292,37 @@ class Node():
             # Pushing the genesis block into stack so that all the nodes can read it
             for i in range(self.node_cnt):
                 if i != 0:
-                    if util.get_debug():
+                    if util.print_logs():
                         print("Node 0 is pushing the genesis block to the stack of node : ",i)
                     
                 q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
             
+        
+        # Now rest of the node take this genesis block as the initial block and store it in their
+        # respective blockchain list
+        else:
+            while True:
+                try:
+                    message = q_list[self.idx].get(block=True, timeout=5)
+                    if util.get_debug():
+                        if message:
+                            print("# Node",self.idx,"recieved some message.")
+                            print("# Message :",message)
+                            
+                except:
+                    if util.print_logs():
+                        print("Node",self.idx,"Waiting for the Genesis block.")
+                
+                # check if the message is about genesis block or not
+                if message[0]=="GENESIS-BLOCK":
+                    miner.blockchain = message[1]
+                    
+                    if util.print_logs():
+                        print("Node",self.idx,"recieved the Genesis Block from Node 0.")
+                    break
+                    
+                    # Now verify the block which is recieved
+                    
         '''
         Now the nodes will do transaction with each other the will be stored in the blockchain.
         '''

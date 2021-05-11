@@ -157,7 +157,7 @@ def create_merkle_tree(tot_leaves,leaf_sz):
 def print_logs():
     return True
 def get_debug():
-    return True
+    return False
 
 '''
 if _debug_:
