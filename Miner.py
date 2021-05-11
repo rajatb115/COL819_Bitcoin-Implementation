@@ -34,6 +34,11 @@ class Miner():
         print("\n")
     
     
-    def create_block(self):
-        print("creating a block")
+    # Function to check whether the genesis block is valid or not
+    def is_valid_genesis_block(self):
+        
+        if util.get_debug():
+            print("# Miner",self.idx": Verifying the genesis block.")
+            
+        
         

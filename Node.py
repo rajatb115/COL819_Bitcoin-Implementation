@@ -301,27 +301,34 @@ class Node():
         # Now rest of the node take this genesis block as the initial block and store it in their
         # respective blockchain list
         else:
-            while True:
+            message = None
+            temp = True
+            while temp:
                 try:
                     message = q_list[self.idx].get(block=True, timeout=5)
                     if util.get_debug():
-                        if message:
+                        if message != None:
                             print("# Node",self.idx,"recieved some message.")
                             print("# Message :",message)
                             
                 except:
                     if util.print_logs():
                         print("Node",self.idx,"Waiting for the Genesis block.")
-                
-                # check if the message is about genesis block or not
-                if message[0]=="GENESIS-BLOCK":
-                    miner.blockchain = message[1]
+                        
+                    # check if the message is about genesis block or not
+                    if message[0]=="GENESIS-BLOCK":
+                        
+                        # if this node got the message then stop the while loop
+                        if message != None:
+                            temp = False
                     
-                    if util.print_logs():
-                        print("Node",self.idx,"recieved the Genesis Block from Node 0.")
-                    break
+                        miner.blockchain = message[1]
                     
-                    # Now verify the block which is recieved
+                        if util.print_logs():
+                            print("Node",self.idx,"recieved the Genesis Block from Node 0.")
+                    
+                        # Now verify the block which is recieved
+                        
                     
         '''
         Now the nodes will do transaction with each other the will be stored in the blockchain.
