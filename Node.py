@@ -90,6 +90,58 @@ class Node():
         print("transaction charges :",self.transaction_charges)
         print("")
         
+        
+    def start_transactions(self,q_list,miner):
+        
+        while True:
+            # check if there is any transaction in the queue pending or not
+            try:
+                message = q_list[self.idx].get(block=True, timeout=1)
+                
+                if util.get_debug():
+                    print("# Found some message in the queue of Node =",self.idx,": Message=",message)
+                
+                # The recieved message could be a transaction or new block
+                if message[0]=="TXN":
+                    if util.get_debug():
+                        print("# This is transaction message at Node =",self.idx)
+                    
+                    message_txn = message[1]
+                    
+                    # verify the transcation
+                    if message_txn.check_sign_transaction():
+                        if util.get_debug():
+                            print("# Trasaction is verified at Node =",self.idx)
+                        miner.current_transactions.append(message_txn)
+                    
+                    else:
+                        if util.get_debug():
+                            print("# Trasaction is not verified at Node =",self.idx)
+                            
+                if message[0] == "BLOCK":
+                    
+                    if util.get_debug():
+                        print("# This is new block message at Node =",self.idx)
+                     
+                    ######################################
+                    # to do add a block in the blockchain#
+                    ######################################
+            
+            except:
+                
+                
+                
+                # Time spend till now by the node and halt the process after timeout
+                if util.get_debug():
+                    print("# Start time=",self.start_time,": Total time=",util.get_total_time(),": Time spent=",time.time()-self.start_time)
+                
+                if(time.time()-self.start_time>util.get_total_time()):
+                    if util.print_logs():
+                        print("Node",self.idx,"is halting due to timeout")
+                        print("Printing the logs of the Node",self.idx)
+                        self.debug()
+                    break
+                
     def update_bitcoin_details(self , block):
         
         if util.get_debug():
@@ -292,7 +344,7 @@ class Node():
                     if util.print_logs():
                         print("Node 0 is pushing the genesis block to the stack of node : ",i)
                     
-                q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
+                    q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
             
             if util.get_debug():
                 self.debug()
@@ -341,7 +393,7 @@ class Node():
         '''
         Now the nodes will perform transactions between each other and a block for those transactions will  be stored in the blockchain.
         '''
-        
+        self.start_transactions(q_list,miner)
         
         
         

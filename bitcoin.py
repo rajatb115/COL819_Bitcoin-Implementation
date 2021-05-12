@@ -4,9 +4,9 @@ import sys
 import multiprocessing 
 import Node
 import util
+import time
 
 if __name__ == "__main__":
-    
 
     node_cnt = int(sys.argv[1])
     

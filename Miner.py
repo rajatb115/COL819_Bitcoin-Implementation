@@ -13,6 +13,8 @@ class Miner():
         self.block_create_time = block_create_time
         self.transaction_charges = transaction_charges
         
+        self.current_transactions = []
+        
         self.blockchain = None
         
         if util.get_debug():
@@ -31,6 +33,7 @@ class Miner():
         print("# Block creation time :",self.block_create_time)
         print("# Transaction charge :",self.transaction_charges)
         print("# Blockchain :",self.blockchain)
+        print("# Current transactions :",self.current_transactions)
         print("\n")
     
     

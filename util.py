@@ -152,7 +152,6 @@ def create_merkle_tree(tot_leaves,leaf_sz):
                 
     return merkle_tree
 
-
 # for debuging the program
 def print_logs():
     return True
@@ -163,6 +162,9 @@ def get_debug():
 # For smart contract
 def get_smart_contract():
     return True
+
+def get_total_time():
+    return 10
 
 
 
