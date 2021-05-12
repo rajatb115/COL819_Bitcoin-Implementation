@@ -34,19 +34,19 @@ class Outputs():
 
 class Node():
     
-    def __init__(self,idx,node_cnt,pow_zeros,leaf_sz,common_list,message_limit):
+    def __init__(self,idx,node_cnt,pow_zeros,leaf_sz,message_common_list,message_limit):
         
         # common details about a node
         self.idx = idx
         self.node_cnt = node_cnt
         self.pow_zeros = pow_zeros
         self.leaf_sz = leaf_sz
-        self.common_list = common_list
+        self.message_common_list = message_common_list
         self.message_limit = message_limit
         
         # block details
-        self.block_create_reward = 5
-        self.block_create_time = 20
+        self.block_create_reward = util.get_block_create_reward()
+        self.block_create_time = util.get_block_create_time()
         
         # here public and private key are in binary format
         self.private_key,self.public_key = get_keys()
@@ -56,7 +56,7 @@ class Node():
         
         self.bitcoin = 0
         self.unspent_bitcoin = {}
-        self.transaction_charges = 1
+        self.transaction_charges = util.get_transaction_charges()
         
         self.start_time = time.time()
         
@@ -77,8 +77,8 @@ class Node():
         print("proof of work :",self.pow_zeros)
         print("leaf size of merkle tree :",self.leaf_sz)
         print("common list details :")
-        for i in range(len(self.common_list)):
-            print(self.common_list)
+        for i in range(len(self.message_common_list)):
+            print(self.message_common_list)
         print("Block message limit :",self.message_limit)
         print("Block creation reward :",self.block_create_reward)
         print("Block creation time :",self.block_create_time)
@@ -112,6 +112,11 @@ class Node():
                     if message_txn.check_sign_transaction():
                         if util.get_debug():
                             print("# Trasaction is verified at Node =",self.idx)
+                        
+                        ##################################
+                        # check for duplicate transaction#
+                        ##################################
+                        
                         miner.current_transactions.append(message_txn)
                     
                     else:
@@ -129,9 +134,39 @@ class Node():
             
             except:
                 
+                ###################
+                # complete this   #
+                ###################
+                
+                # check for the smart contract and if the node id is in the smart contract then
+                # perform the smart contract
+                
+                if util.get_smart_contract():
+                    
+                    # Getting the nodes which are responsible for smart contract
+                    smart_contract_nodes =  util.get_smart_contract_nodes()
+                    
+                    # Check if current node is participating in the smart contract
+                    if self.idx in smart_contract_nodes.keys():
+                        
+                        if util.get_debug():
+                            print("Performing smart contract for Node",self.idx)
+                        
+                        
+                        
+                
+                # If smart contract is false
+                else:
+                    
+                    print("under construction")
+                    
+                    ###################
+                    # complete this   #
+                    ###################
                 
                 
-                # Time spend till now by the node and halt the process after timeout
+                
+                # Calculating time spend till now by the node and halt the process after timeout
                 if util.get_debug():
                     print("# Start time=",self.start_time,": Total time=",util.get_total_time(),": Time spent=",time.time()-self.start_time)
                 
@@ -304,7 +339,7 @@ class Node():
             tx_inputs.append(Inputs())
             
             for i in range(int(self.node_cnt)):
-                initial_amt = 5000
+                initial_amt = util.get_initial_amount()
                 
                 # node 0 will add the genesis block so will get block creation reward
                 if i==0:

@@ -152,20 +152,49 @@ def create_merkle_tree(tot_leaves,leaf_sz):
                 
     return merkle_tree
 
-# for debuging the program
-def print_logs():
-    return True
-def get_debug():
-    return True
 
+#########################################################
+######## Setting for the code ###########################
+#########################################################
+
+# Initial amount for all the nodes
+def get_initial_amount():
+    return 5000
+
+# Block creation reward
+def get_block_create_reward():
+    return 5
+
+# Block creation time
+def get_block_create_time():
+    return 20
+
+# Transaction charges
+def get_transaction_charges():
+    return 2
 
 # For smart contract
 def get_smart_contract():
     return True
 
+def get_smart_contract_nodes():
+    dict_nodes  = {}
+    dict_nodes[0] = 1
+    return dict_nodes
+
+def get_smart_contract_balance():
+    return 3000
+
+# Max time for which each node will run
 def get_total_time():
     return 10
 
+
+# for debuging and printing logs of the program
+def print_logs():
+    return True
+def get_debug():
+    return True
 
 
 '''
