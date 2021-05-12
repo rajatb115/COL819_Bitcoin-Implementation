@@ -134,7 +134,7 @@ class Node():
                             # If the node is not node 0 then it won't recieve the block creation reward
                             else:
                                 if (util.print_logs()):
-                                    print("Node "+str(self.idx)+" recieved " +str(out.amount-self.block_create_reward)+ " btc as initial node amount.")
+                                    print("Node "+str(self.idx)+" recieved " +str(out.amount)+ " btc as initial node amount.")
                                     
                             self.bitcoin = self.bitcoin + out.amount
                             self.unspent_bitcoin[temp_key] = [None, out.amount, txnid, itr]
@@ -328,7 +328,13 @@ class Node():
                         print("Node",self.idx,"recieved the Genesis Block from Node 0.")
                     
                     # Now verify the block which is recieved
-                    miner.is_valid_block("GENESIS-BLOCK")
+                    if (miner.is_valid_block("GENESIS-BLOCK")):
+                        if util.print_logs():
+                            print("Node",self.idx,"Genesis block transactions are verified.")
+                            
+                            genesis_blockchain = miner.blockchain
+                            self.update_bitcoin_details(genesis_blockchain.blockchain[0])
+                    
                     
         '''
         Now the nodes will do transaction with each other the will be stored in the blockchain.

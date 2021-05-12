@@ -27,8 +27,8 @@ def public_private_key():
     public_key = private_key.publickey()
     
     if get_debug():
-        print("Type of private key and public key")
-        print(type(private_key), type(public_key))
+        print("# Type of private key and public key")
+        print("# ",type(private_key), type(public_key))
     
     '''It prints the following output.
     <class ‘Crypto.PublicKey.RSA.RsaKey’>
@@ -49,10 +49,10 @@ def public_private_key():
     public_pem = public_key.export_key()
     
     if get_debug():
-        print("Type of private pem and public pem")
-        print(type(private_pem), type(public_pem))
-        print("Private pem and public pem")
-        print(private_pem,public_pem)
+        print("# Type of private pem and public pem")
+        print("# ",type(private_pem), type(public_pem))
+        print("# Private pem and public pem")
+        print("# ",private_pem,public_pem)
     
     # return binary private and public key
     return (private_pem, public_pem)
@@ -84,8 +84,8 @@ def create_merkle_tree(tot_leaves,leaf_sz):
     len_leaves = len(leaves)
     
     if get_debug():
-        print("total number of leaves :",len_leaves)
-        print("leaves :",leaves)
+        print("# total number of leaves :",len_leaves)
+        print("# leaves :",leaves)
     
     '''
     Check if leaves are in order of leaf_sz if not then replicate the last
@@ -104,7 +104,7 @@ def create_merkle_tree(tot_leaves,leaf_sz):
             leaves.append(leaves[-1])
 
     if get_debug():
-        print("New leaves :",leaves)
+        print("# New leaves :",leaves)
     
     merkle_tree = [leaves]
     
@@ -122,7 +122,7 @@ def create_merkle_tree(tot_leaves,leaf_sz):
             pair_leaves.append(temp1)
         
         if get_debug():
-            print("pair_leaves :",pair_leaves)
+            print("# pair_leaves :",pair_leaves)
         
         leaves = []
         
@@ -135,8 +135,8 @@ def create_merkle_tree(tot_leaves,leaf_sz):
         
         len_leaves = len(leaves)
         if get_debug():
-            print("total number of leaves :",len_leaves)
-            print("leaves :",leaves)
+            print("# total number of leaves :",len_leaves)
+            print("# leaves :",leaves)
         
         if len_leaves % leaf_sz != 0  and len_leaves != 1:
             # number of extra leaves to add to make it multiple of leaf_sz.

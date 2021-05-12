@@ -11,7 +11,7 @@ if __name__ == "__main__":
     node_cnt = int(sys.argv[1])
     
     if util.get_debug():
-        print("number of nodes :",node_cnt)
+        print("# number of nodes :",node_cnt)
 
     '''
     Creating a shared memory for each process to communicate between each other. 
@@ -23,15 +23,15 @@ if __name__ == "__main__":
         q_list.append(multiprocessing.Queue())
     
     if util.get_debug():
-        print("queue_list :",q_list)
+        print("# queue_list :",q_list)
     
     # number of zeros in proof of work and leaf size for merkel tree
     pow_zeros = int(sys.argv[2])
     leaf_sz = int(sys.argv[3])
     
     if util.get_debug():
-        print("Proof of work Zeros :",pow_zeros)
-        print("leaf size :",leaf_sz)
+        print("# Proof of work Zeros :",pow_zeros)
+        print("# leaf size :",leaf_sz)
     
     # creating common list for all the nodes
     common_list = multiprocessing.Manager().list()

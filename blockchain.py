@@ -16,16 +16,16 @@ class Blockchain():
         
     def debug(self):
         print("")
-        print("Inside Blockchain")
-        print("Blockchain : proof of work -",self.pow_zeros)
-        print("Blockchain : leaf size -",self.leaf_sz)
-        print("Unspent transactions -",str(self.utxo))
-        print("UTXO mapping :")
+        print("# Inside Blockchain")
+        print("# Blockchain : proof of work -",self.pow_zeros)
+        print("# Blockchain : leaf size -",self.leaf_sz)
+        print("# Unspent transactions -",str(self.utxo))
+        print("# UTXO mapping :")
         for i in self.utxo_mapping.keys():
             print(i," - ",self.utxo_mapping[i])
-        print("Index of the confirmed block -",self.index_of_confirmed_block)
-        print("Height of the current block -",self.height_of_current_block)
-        print("Blockchain list")
+        print("# Index of the confirmed block -",self.index_of_confirmed_block)
+        print("# Height of the current block -",self.height_of_current_block)
+        print("# Blockchain list")
         for i in self.blockchain:
             print(i)
         
@@ -63,9 +63,16 @@ class Blockchain():
             if output_txn.amount < 0:
                 return False
             outputs = outputs + output_txn.amount
+          
+        if util.get_debug():
+            print("# Check the sign of the transaction :", txn.check_sign_transaction())
+        if txn.check_sign_transaction() == False:
+            
+            if util.print_logs():
+                print("Returning : Faied to validate the signature of the transaction")
+            return False
             
         return inputs>=outputs
-
 
     def add_UTXO(self, transaction):
         try:

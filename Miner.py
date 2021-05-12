@@ -20,17 +20,17 @@ class Miner():
     
     def debug(self):
         print("")
-        print("Printing the details of Miner")
-        print("Node id : ",self.idx)
-        print("Node count :",self.node_cnt)
-        print("proof of work :",self.pow_zeros)
-        print("leaf size of merkle tree :",self.leaf_sz)
-        print("Private key of node :",self.private_key)
-        print("list of public key of other nodes :",self.node_public_key)
-        print("Block creation reward :",self.block_create_reward)
-        print("Block creation time :",self.block_create_time)
-        print("Transaction charge :",self.transaction_charges)
-        print("Blockchain :",self.blockchain)
+        print("# Printing the details of Miner")
+        print("# Node id : ",self.idx)
+        print("# Node count :",self.node_cnt)
+        print("# proof of work :",self.pow_zeros)
+        print("# leaf size of merkle tree :",self.leaf_sz)
+        print("# Private key of node :",self.private_key)
+        print("# list of public key of other nodes :",self.node_public_key)
+        print("# Block creation reward :",self.block_create_reward)
+        print("# Block creation time :",self.block_create_time)
+        print("# Transaction charge :",self.transaction_charges)
+        print("# Blockchain :",self.blockchain)
         print("\n")
     
     
@@ -60,6 +60,6 @@ class Miner():
             return (temp_pow_isvalid and temp_txn_is_valid)
             
         else:
-            # have to complete
+            # have to complete to do
             print("This is not a genesis block")
             
