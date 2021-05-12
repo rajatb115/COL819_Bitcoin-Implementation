@@ -119,6 +119,3 @@ class Blockchain():
         
         if util.get_debug():
             self.debug()
-    
-    
-    # Need to add a normal block

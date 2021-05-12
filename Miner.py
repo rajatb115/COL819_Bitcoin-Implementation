@@ -40,8 +40,26 @@ class Miner():
         # check if the block is genesis block or not
         if block_type == "GENESIS-BLOCK":
             if util.get_debug():
-                print("# Miner",self.idx": Verifying the genesis block.")
+                print("# Miner",self.idx,": Verifying the genesis block.")
             
+            # check the proof of work is valid or not
+            # verify the transactions is valid or not
+            temp_pow_isvalid = self.blockchain.blockchain[0].is_valid_proof_of_work()
             
-        
-        
+            if util.print_logs():
+                print("# Miner",self.idx,":Proof of work validity :",temp_pow_isvalid)
+            
+            #temp_txn_is_valid = self.blockchain.isValid_transaction(blockchain[0])
+            temp_txn_is_valid = True
+            for txn in self.blockchain.blockchain[0].transaction:
+                temp_txn_is_valid = temp_txn_is_valid and self.blockchain.isValid_transaction(txn)
+                    
+            if util.print_logs():
+                print("# Miner",self.idx,":Proof of transaction validity :",temp_txn_is_valid)
+            
+            return (temp_pow_isvalid and temp_txn_is_valid)
+            
+        else:
+            # have to complete
+            print("This is not a genesis block")
+            

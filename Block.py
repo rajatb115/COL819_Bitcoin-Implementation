@@ -69,7 +69,7 @@ class Block():
         message = str(self.root_merkle_tree)+ " " + str(self.prev_block_hash)
         
         # Find the hash of the message + temp_nounce
-        message_hash = util.create_hash(message + str(temp_nounce))
+        message_hash = util.create_hash(message + " " + str(temp_nounce))
         
         # check if the number of pow_zeros digit of message_hash is equal to zero
         while(self.check_pow_zeros(message_hash) == False):
@@ -78,9 +78,27 @@ class Block():
                 print("Testing nounce : ",str(temp_nounce)," ; Temp hash of message : ",str(message_hash))
             
             temp_nounce = temp_nounce +1
-            message_hash = util.create_hash(message + str(temp_nounce))
+            message_hash = util.create_hash(message + " " + str(temp_nounce))
         
         if util.get_debug():
             print("Final nounce : ",str(temp_nounce)," ; Final hash of block : ",str(message_hash))
         
         return (message_hash,temp_nounce)
+    
+    
+    def is_valid_proof_of_work(self):
+        
+        message = str(self.root_merkle_tree)+ " " + str(self.prev_block_hash) + " " + str(self.nounce)
+        message_hash = util.create_hash(message)
+        
+        if util.get_debug():
+            print("# Validating the proof of work.")
+            print("# Message :",message)
+            print("# message_hash :",message_hash)
+            print("# Nounce :",self.nounce)
+            print("# proof of work validity :",self.check_pow_zeros(message_hash))
+        
+        return self.check_pow_zeros(message_hash)
+    
+            
+            

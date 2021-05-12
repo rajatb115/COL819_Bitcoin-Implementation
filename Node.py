@@ -315,20 +315,20 @@ class Node():
                     if util.print_logs():
                         print("Node",self.idx,"Waiting for the Genesis block.")
                         
-                    # check if the message is about genesis block or not
-                    if message[0]=="GENESIS-BLOCK":
+                # check if the message is about genesis block or not
+                if message[0]=="GENESIS-BLOCK":
                         
-                        # if this node got the message then stop the while loop
-                        if message != None:
-                            temp = False
+                    # if this node got the message then stop the while loop
+                    if message != None:
+                        temp = False
                     
-                        miner.blockchain = message[1]
+                    miner.blockchain = message[1]
                     
-                        if util.print_logs():
-                            print("Node",self.idx,"recieved the Genesis Block from Node 0.")
+                    if util.print_logs():
+                        print("Node",self.idx,"recieved the Genesis Block from Node 0.")
                     
-                        # Now verify the block which is recieved
-                        
+                    # Now verify the block which is recieved
+                    miner.is_valid_block("GENESIS-BLOCK")
                     
         '''
         Now the nodes will do transaction with each other the will be stored in the blockchain.

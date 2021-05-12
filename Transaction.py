@@ -7,7 +7,7 @@ class Transaction():
         self.txn_input = txn_input
         
         # here public key is the sender which send money to other nodes
-        self.public_key = public_key 
+        self.public_key = public_key
         self.private_key = private_key
         self.txn_type = txn_type
         self.txn_time = time.time()
