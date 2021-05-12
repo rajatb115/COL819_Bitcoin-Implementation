@@ -157,7 +157,14 @@ def create_merkle_tree(tot_leaves,leaf_sz):
 def print_logs():
     return True
 def get_debug():
-    return False
+    return True
+
+
+# For smart contract
+def get_smart_contract():
+    return True
+
+
 
 '''
 if _debug_:

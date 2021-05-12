@@ -35,7 +35,7 @@ class Miner():
     
     
     # Function to check whether the  block is valid or not
-    def is_valid_block(self,block_type):
+    def is_valid_block(self,block_type,block = None):
         
         # check if the block is genesis block or not
         if block_type == "GENESIS-BLOCK":

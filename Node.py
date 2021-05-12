@@ -286,9 +286,6 @@ class Node():
             genesis_blockchain = miner.blockchain
             self.update_bitcoin_details(genesis_blockchain.blockchain[0])
             
-            if util.get_debug():
-                self.debug()
-            
             # Pushing the genesis block into stack so that all the nodes can read it
             for i in range(self.node_cnt):
                 if i != 0:
@@ -296,6 +293,9 @@ class Node():
                         print("Node 0 is pushing the genesis block to the stack of node : ",i)
                     
                 q_list[i].put(["GENESIS-BLOCK",miner.blockchain,self.idx,i])
+            
+            if util.get_debug():
+                self.debug()
             
         
         # Now rest of the node take this genesis block as the initial block and store it in their
@@ -328,14 +328,20 @@ class Node():
                         print("Node",self.idx,"recieved the Genesis Block from Node 0.")
                     
                     # Now verify the block which is recieved
-                    if (miner.is_valid_block("GENESIS-BLOCK")):
+                    if (miner.is_valid_block("GENESIS-BLOCK",None)):
+                        
                         if util.print_logs():
                             print("Node",self.idx,"Genesis block transactions are verified.")
                             
-                            genesis_blockchain = miner.blockchain
-                            self.update_bitcoin_details(genesis_blockchain.blockchain[0])
-                    
+                        genesis_blockchain = miner.blockchain
+                        self.update_bitcoin_details(genesis_blockchain.blockchain[0])
+            if util.get_debug():
+                self.debug()
                     
         '''
-        Now the nodes will do transaction with each other the will be stored in the blockchain.
+        Now the nodes will perform transactions between each other and a block for those transactions will  be stored in the blockchain.
         '''
+        
+        
+        
+        
