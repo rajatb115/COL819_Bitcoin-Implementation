@@ -3,6 +3,7 @@ import util
 import Miner
 import blockchain
 import Transaction
+from threading import Thread, Event
 
 def get_keys():
     return util.public_private_key()
@@ -90,6 +91,15 @@ class Node():
         print("transaction charges :",self.transaction_charges)
         print("")
         
+    def find_cash(self):
+        sm = 0
+        for key in self.unspent_bitcoin.keys():
+            sm = sm + self.unspent_bitcon[key][1]
+            
+        if util.get_debug():
+            print("# Coin at Noide :",self.idx, "is",sm)
+        return sm
+    
         
     def start_transactions(self,q_list,miner):
         
@@ -134,36 +144,53 @@ class Node():
             
             except:
                 
-                ###################
-                # complete this   #
-                ###################
-                
+                reciever = None
+                sender = self.idx
+                amount = 0
+                        
                 # check for the smart contract and if the node id is in the smart contract then
                 # perform the smart contract
                 
-                if util.get_smart_contract():
-                    
-                    # Getting the nodes which are responsible for smart contract
-                    smart_contract_nodes =  util.get_smart_contract_nodes()
-                    
-                    # Check if current node is participating in the smart contract
-                    if self.idx in smart_contract_nodes.keys():
+                # Getting the nodes which are responsible for smart contract
+                smart_contract_nodes =  util.get_smart_contract_nodes()
+                
+                # Check if current node is participating in the smart contract
+                if self.idx in smart_contract_nodes.keys():
+            
+                    if util.get_smart_contract() and self.find_cash() >= util.get_smart_contract_balance():
                         
                         if util.get_debug():
                             print("Performing smart contract for Node",self.idx)
+                            
+                        self.message_common_list.append(self.idx)
+                        reciever = smart_contract_nodes[self.idx]
+                        sender = self.idx
+                        amount = util.get_smart_contract_deduction()
                         
+                        if util.print_logs():
+                            print("")
+                            print("Node",sender, "is sending",amount,"btc to Node",reciever,"as a part of smart contract.")
+                            print("")
                         
+                    else:
+                        reciever = util.find_random_reciever(self.node_cnt,self.idx)
+                        sender = self.idx
+                        amount = util.get_random_amount()
                         
-                
-                # If smart contract is false
+                        if util.print_logs():
+                            print("Node",sender, "is sending",amount,"btc to Node",reciever,".")
+                        
                 else:
+                    reciever = util.find_random_reciever(self.node_cnt,self.idx)
+                    sender = self.idx
+                    amount = util.get_random_amount()
                     
-                    print("under construction")
-                    
-                    ###################
-                    # complete this   #
-                    ###################
+                    if util.print_logs():
+                        print("Node",sender, "is sending",amount,"btc to Node",reciever,".")
                 
+                ##########################
+                #### need to complete ####
+                ##########################
                 
                 
                 # Calculating time spend till now by the node and halt the process after timeout
@@ -428,7 +455,13 @@ class Node():
         '''
         Now the nodes will perform transactions between each other and a block for those transactions will  be stored in the blockchain.
         '''
-        self.start_transactions(q_list,miner)
+        
+        # creating thread for transaction and mining
+        txn_thread = Thread(target=self.start_transactions(q_list,miner), name='Txn:'+str(self.idx))
+        txn_thread.start()
+        txn_thread.join()
+        
+        #self.start_transactions(q_list,miner)
         
         
         

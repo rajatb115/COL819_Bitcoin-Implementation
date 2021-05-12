@@ -7,6 +7,7 @@ from binascii import hexlify
 from Crypto import Random
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
+import random
 
 def create_hash(s):
     uni = s.encode()
@@ -184,6 +185,20 @@ def get_smart_contract_nodes():
 
 def get_smart_contract_balance():
     return 3000
+
+def get_smart_contract_deduction():
+    return 50
+
+def get_random_amount():
+    return random.randint(1, 100)
+
+def find_random_reciever(tot_nodes,curr_node):
+    r = random.randint(0,tot_nodes-1)
+    while (r == curr_node):
+        r=r+1
+        r= r%tot_nodes
+    return r
+    
 
 # Max time for which each node will run
 def get_total_time():

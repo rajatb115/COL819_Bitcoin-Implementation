@@ -108,6 +108,7 @@ class Blockchain():
             
         # Adding the Genesis block to the blockchain
         self.blockchain.append(block)
+        self.blockchain[0].parent = -1
         
         # Listing the unspend transactions
         temp = self.add_UTXO(transaction)
@@ -123,6 +124,7 @@ class Blockchain():
         
         # block 0 is the genesis block and its height is 0
         self.height_of_current_block = 0
+        
         
         if util.get_debug():
             self.debug()
