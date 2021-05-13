@@ -46,7 +46,20 @@ class Miner():
                     if util.get_debug():
                         print("# Found the transaction id")
                         
-                    return txn.txn_output[txr_index].amount
+                    return txn.txn_output[ins.txr_index].amount
+                
+    
+    def add_new_block(self, block):
+        
+        # check id block is geniune or not 
+        
+    
+                
+    def is_verified_block(self):
+        if (self.blockchain.height_of_current_block - self.blockchain.index_of_confirmed_block >= 2):
+            self.blockchain.index_of_confirmed_block = self.blockchain.height_of_current_block
+            return True
+        return False
         
         
     # Function to check whether the  block is valid or not

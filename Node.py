@@ -340,12 +340,61 @@ class Node():
                     new_transaction = Transaction.Transaction(new_input, new_output, self.public_key, self.private_key, "COIN-BASE")
                     
                     # creating new block
-                    new_block = Block.Block()
+                    new_block = Block.Block(self.pow_zeros, self.leaf_sz, miner.current_transactions + [new_transaction],"NORMAL-BLOCK",miner.blockchain.blockchain[-1].current_block_hash, len(miner.blockchain.blockchain))
                     
+                    if new_block:
+                        if util.get_debug():
+                            print("# Checking if some other node has already created the current block.")
+                        
+                        temp1 = True
+                        status = False
+                        unused_message = []
+                        while temp1:
+                            try:
+                                message = q_list[self.idx].get(block=True,timeout=1)
+                                if message[0] == "BLOCK":
+                                    if util.get_debug():
+                                        print("# Already some other node won the race. (Node)",message[2])
+
+                                    miner.add_new_block(message[1])
+                                    temp1 = False
+                                    status = True
+                                else:
+                                    # This message need to be placed again in the queue.
+                                    unused_message.append(message)
+                            except:
+                                temp1  = False
+                                # Placing the unused message in the queue
+                                for m in unused_message:
+                                    q_list[self.idx].put(m)
+                                
+                        
+                        # If Block message is not found in the queue
+                        if status == False:
+                            # send the current mined block to all the nodes
+                            if util.get_debug():
+                                print("# Sending the block to all the nodes.")
+                                    
+                            for i in range(self.node_cnt):
+                                
+                                if i != self.idx:
+                                    q_list[i].put(["BLOCK",new_block,self.idx])
+                            miner.add_new_block(new_block)
                     
-                    
-                    
-                
+                    is_new_confirmed = miner.is_verified_block()
+                    if is_new_confirmed:
+                        
+                        confirmed_block_idx = miner.blockchain.index_of_confirmed_block
+                        
+                        utxo_transaction = miner.blockcahin.blockchain[confirmed_block_idx].transaction
+                        miner.blockchain.add_UTXO(utxo_transaction)
+                        miner.blockchain.delete_UTXO(utxo_transaction)
+                        
+                        
+                        self.update_bitcoin_details(miner.blockchain.blockchain[confirmed_block_idx])
+                    if util.print_logs():
+                        print("Node",self.idx,"has",self.bitcoin)
+                        
                 # Calculating time spend till now by the node and halt the process after timeout
                 if util.get_debug():
                     print("# Start time=",self.start_time,": Total time=",util.get_total_time(),": Time spent=",time.time()-self.start_time)
@@ -571,7 +620,7 @@ class Node():
         # respective blockchain list
         else:
             message = None
-            temp = True
+            temp1 = True
             while temp:
                 try:
                     message = q_list[self.idx].get(block=True, timeout=5)
@@ -589,7 +638,7 @@ class Node():
                         
                     # if this node got the message then stop the while loop
                     if message != None:
-                        temp = False
+                        temp1 = False
                     
                     miner.blockchain = message[1]
                     
@@ -617,9 +666,3 @@ class Node():
         txn_thread = Thread(target=self.start_transactions(q_list,miner), name='Txn:'+str(self.idx))
         txn_thread.start()
         txn_thread.join()
-        
-        
-        #self.start_transactions(q_list,miner)
-        
-        
-        

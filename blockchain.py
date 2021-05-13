@@ -128,3 +128,15 @@ class Blockchain():
         
         if util.get_debug():
             self.debug()
+            
+    def delete_UTXO(self,transaction):
+        try:
+            for txn in transaction:
+                for inp in (tx.txn_input):
+                    if txn.txn_type != "COIN-BASE":
+                        key = self.UTXO(inp.txr_index, inp.prev_txid)
+                        self.utxo.remove(key)
+        except:
+            util.get_debug():
+                print("# Something went wrong.")
+            
