@@ -37,6 +37,18 @@ class Miner():
         print("\n")
     
     
+    def get_amount(self,ins):
+        for i in range(self.blockchain.index_of_confirmed_block+1):
+            block = self.blockchain.blockchain[i]
+            for txn in block.transaction:
+                if txn.txn_id == ins.prev_txid:
+                    
+                    if util.get_debug():
+                        print("# Found the transaction id")
+                        
+                    return txn.txn_output[txr_index].amount
+        
+        
     # Function to check whether the  block is valid or not
     def is_valid_block(self,block_type,block = None):
         

@@ -5,6 +5,7 @@ import blockchain
 import Transaction
 from threading import Thread, Event
 import random
+import Block
 
 def get_keys():
     return util.public_private_key()
@@ -196,6 +197,7 @@ class Node():
                 prob = self.probability()
                 
                 if prob and len(self.message_common_list)<=self.message_limit:
+                    
                     lis_reciever = []
                     sender = self.idx
                     lis_amount = []
@@ -309,6 +311,37 @@ class Node():
                         
                         for indx, tx in enumerate(miner.current_transactions):
                             print(indx,":",tx)
+                    
+                    # now creating a new block
+                    # to create a block first add the block creation reward transaction or other rewards
+                    total_inputs = 0
+                    total_outputs = 0
+                    
+                    for trans in miner.current_transactions:
+                        # calculate the input and output txns
+                        
+                        for i in trans.txn_input:
+                            amt = miner.get_amount(i)
+                            
+                            total_inputs  = total_inputs + amt
+                        
+                        for o in trans.txn_output:
+                            total_outputs = total_outputs + o.amount
+                        
+                    # We got the inputs and the outputs now find the rewards
+                    rewards = total_inputs - total_outputs + self.block_create_reward
+                    
+                    # create a transaction for this reward and add to the block
+                    new_input = []
+                    new_input.append(Inputs())
+                    new_output = []
+                    new_output.append(Outputs(self.public_key,rewards))
+                    
+                    new_transaction = Transaction.Transaction(new_input, new_output, self.public_key, self.private_key, "COIN-BASE")
+                    
+                    # creating new block
+                    new_block = Block.Block()
+                    
                     
                     
                     
