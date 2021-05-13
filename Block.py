@@ -13,7 +13,7 @@ class Block():
         self.root_merkle_tree = self.get_root()
         self.current_block_hash,self.nounce = self.proof_of_work()
         self.parent = None
-        slef.child = []
+        self.child = []
         
         if util.get_debug():
             self.debug()

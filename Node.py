@@ -77,9 +77,7 @@ class Node():
         print("Node count :",self.node_cnt)
         print("proof of work :",self.pow_zeros)
         print("leaf size of merkle tree :",self.leaf_sz)
-        print("common list details :")
-        for i in range(len(self.message_common_list)):
-            print(self.message_common_list)
+        print("common list details :",self.message_common_list)
         print("Block message limit :",self.message_limit)
         print("Block creation reward :",self.block_create_reward)
         print("Block creation time :",self.block_create_time)
@@ -94,14 +92,53 @@ class Node():
     def find_cash(self):
         sm = 0
         for key in self.unspent_bitcoin.keys():
-            sm = sm + self.unspent_bitcon[key][1]
+            sm = sm + self.unspent_bitcoin[key][1]
             
         if util.get_debug():
             print("# Coin at Noide :",self.idx, "is",sm)
         return sm
     
+    def get_unspent_bitcoin_keys(self,amount):
+        lis = []
+        sm =0
+        for key in self.unspent_bitcoin.keys():
+            sm+=self.unspent_bitcoin[key][1]
+            lis.append(key)
+            
+            if util.get_debug():
+                print("")
+                print("# Get unspent bitcoin keys :")
+                print("# key :",key)
+                print("# Money",self.unspent_bitcoin[key][1])
+                print("# sum :",sm)
+                print("")
+            
+            if (sm >=amount):
+                break
+        return lis
+    
+    def rec_amt(self):
+        
+        rec = []
+        amt = []
+        tx = 0
+        
+        if util.get_multi_transactions():
+            tx = util.get_random_multi_transactions()
+        else:
+            tx=1
+            
+        for i in range(tx):
+            rec.append(util.find_random_reciever(self.node_cnt,self.idx))
+            amt.appned( util.get_random_amount())
+            
+        return (rec,amt)
+            
         
     def start_transactions(self,q_list,miner):
+        
+        multi_smart_contract = util.get_multi_smart_contract()
+        temp = True
         
         while True:
             # check if there is any transaction in the queue pending or not
@@ -144,9 +181,9 @@ class Node():
             
             except:
                 
-                reciever = None
+                reciever = []
                 sender = self.idx
-                amount = 0
+                amount = []
                         
                 # check for the smart contract and if the node id is in the smart contract then
                 # perform the smart contract
@@ -155,17 +192,19 @@ class Node():
                 smart_contract_nodes =  util.get_smart_contract_nodes()
                 
                 # Check if current node is participating in the smart contract
-                if self.idx in smart_contract_nodes.keys():
+                if self.idx in smart_contract_nodes.keys() and temp:
             
                     if util.get_smart_contract() and self.find_cash() >= util.get_smart_contract_balance():
+                        
+                        temp = multi_smart_contract
                         
                         if util.get_debug():
                             print("Performing smart contract for Node",self.idx)
                             
                         self.message_common_list.append(self.idx)
-                        reciever = smart_contract_nodes[self.idx]
+                        reciever.append(smart_contract_nodes[self.idx])
                         sender = self.idx
-                        amount = util.get_smart_contract_deduction()
+                        amount.append(util.get_smart_contract_deduction())
                         
                         if util.print_logs():
                             print("")
@@ -173,24 +212,45 @@ class Node():
                             print("")
                         
                     else:
-                        reciever = util.find_random_reciever(self.node_cnt,self.idx)
+                        #reciever.append(util.find_random_reciever(self.node_cnt,self.idx))
                         sender = self.idx
-                        amount = util.get_random_amount()
+                        #amount.append(util.get_random_amount())
+                        
+                        reciever,amount = self.rec_amt()
                         
                         if util.print_logs():
-                            print("Node",sender, "is sending",amount,"btc to Node",reciever,".")
+                            for i in range(len(reciever)):
+                                print("Node",sender, "is sending",amount[i],"btc to Node",reciever[i],".")
                         
                 else:
-                    reciever = util.find_random_reciever(self.node_cnt,self.idx)
+                    #reciever = util.find_random_reciever(self.node_cnt,self.idx)
                     sender = self.idx
-                    amount = util.get_random_amount()
+                    #amount = util.get_random_amount()
+                    reciever,amount = self.rec_amt()
                     
                     if util.print_logs():
-                        print("Node",sender, "is sending",amount,"btc to Node",reciever,".")
+                        for i in range(len(reciever)):
+                            print("Node",sender, "is sending",amount[i],"btc to Node",reciever[i],".")
+                        
                 
-                ##########################
-                #### need to complete ####
-                ##########################
+                tot_amt = 0
+                for m in range(len(reciever)):
+                    tot_amt+=amount[m]
+                
+                # Check if the current node have the money to send to other node
+                unspent_bitcoin_keys = self.get_unspent_bitcoin_keys(amount + self.transaction_charges)
+                
+                # If there is not enough money available for transaction
+                if len(unspent_bitcoin_keys)==0:
+                    if util.print_logs():
+                        print("Node",self.idx, "have not enough money to send.")
+                
+                # If enough money is available for transaction
+                else:
+                    # to do 
+                
+                
+                
                 
                 
                 # Calculating time spend till now by the node and halt the process after timeout
