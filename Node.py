@@ -4,6 +4,7 @@ import Miner
 import blockchain
 import Transaction
 from threading import Thread, Event
+import random
 
 def get_keys():
     return util.public_private_key()
@@ -63,7 +64,7 @@ class Node():
         
         self.dict_public_key_nodeid = {}
         self.nodeid_public_key = []
-        self.prev_trans_key = None
+        self.prev_trans_key = []
         self.prev_trans_verified = False
         self.prev_trans_time = 0
         
@@ -130,9 +131,17 @@ class Node():
             
         for i in range(tx):
             rec.append(util.find_random_reciever(self.node_cnt,self.idx))
-            amt.appned( util.get_random_amount())
+            amt.append( util.get_random_amount())
             
         return (rec,amt)
+    
+    def probability(self):
+        p = 1/self.node_cnt
+        
+        if util.get_debug():
+            print("probability :",p)
+        
+        return (p >= random.uniform(0,1))
             
         
     def start_transactions(self,q_list,miner):
@@ -181,89 +190,127 @@ class Node():
             
             except:
                 
-                reciever = []
-                sender = self.idx
-                amount = []
-                        
-                # check for the smart contract and if the node id is in the smart contract then
-                # perform the smart contract
+                # probablility that this node will create a transaction or not
+                prob = self.probability()
                 
-                # Getting the nodes which are responsible for smart contract
-                smart_contract_nodes =  util.get_smart_contract_nodes()
-                
-                # Check if current node is participating in the smart contract
-                if self.idx in smart_contract_nodes.keys() and temp:
-            
-                    if util.get_smart_contract() and self.find_cash() >= util.get_smart_contract_balance():
-                        
-                        temp = multi_smart_contract
-                        
-                        if util.get_debug():
-                            print("Performing smart contract for Node",self.idx)
-                            
-                        self.message_common_list.append(self.idx)
-                        reciever.append(smart_contract_nodes[self.idx])
-                        sender = self.idx
-                        amount.append(util.get_smart_contract_deduction())
-                        
-                        if util.print_logs():
-                            print("")
-                            print("Node",sender, "is sending",amount,"btc to Node",reciever,"as a part of smart contract.")
-                            print("")
-                        
-                    else:
-                        #reciever.append(util.find_random_reciever(self.node_cnt,self.idx))
-                        sender = self.idx
-                        #amount.append(util.get_random_amount())
-                        
-                        reciever,amount = self.rec_amt()
-                        
-                        if util.print_logs():
-                            for i in range(len(reciever)):
-                                print("Node",sender, "is sending",amount[i],"btc to Node",reciever[i],".")
-                        
-                else:
-                    #reciever = util.find_random_reciever(self.node_cnt,self.idx)
+                if prob and len(self.message_common_list)<=self.message_limit:
+                    lis_reciever = []
                     sender = self.idx
-                    #amount = util.get_random_amount()
-                    reciever,amount = self.rec_amt()
+                    lis_amount = []
+
+                    # check for the smart contract and if the node id is in the smart contract then
+                    # perform the smart contract
+
+                    # Getting the nodes which are responsible for smart contract
+                    smart_contract_nodes =  util.get_smart_contract_nodes()
+
+                    # Check if current node is participating in the smart contract
+                    if self.idx in smart_contract_nodes.keys() and temp and len(self.message_common_list)<=self.message_limit:
+
+                        if util.get_smart_contract() and self.find_cash() >= util.get_smart_contract_balance() and len(self.message_common_list)<=self.message_limit:
+
+                            temp = multi_smart_contract
+
+                            if util.get_debug():
+                                print("Performing smart contract for Node",self.idx)
+
+                            #self.message_common_list.append(self.idx)
+                            lis_reciever.append(smart_contract_nodes[self.idx])
+                            sender = self.idx
+                            lis_amount.append(util.get_smart_contract_deduction())
+
+                            if util.print_logs():
+                                print("")
+                                print("Node",sender, "is sending",lis_amount[0],"btc to Node",lis_reciever[0],"as a part of smart contract.")
+                                print("")
+
+                        else:
+                            #reciever.append(util.find_random_reciever(self.node_cnt,self.idx))
+                            sender = self.idx
+                            #amount.append(util.get_random_amount())
+
+                            lis_reciever,lis_amount = self.rec_amt()
+
+                            if util.print_logs():
+                                for i in range(len(lis_reciever)):
+                                    print("Node",sender, "is sending",lis_amount[i],"btc to Node",lis_reciever[i],".")
+
+                    else:
+                        #reciever = util.find_random_reciever(self.node_cnt,self.idx)
+                        sender = self.idx
+                        #amount = util.get_random_amount()
+                        lis_reciever,lis_amount = self.rec_amt()
+
+                        if util.print_logs():
+                            for i in range(len(lis_reciever)):
+                                print("Node",sender, "is sending",lis_amount[i],"btc to Node",lis_reciever[i],".")
+
+                    tot_amt = 0
+                    for m in range(len(lis_reciever)):
+                        tot_amt+=lis_amount[m]
+
+                    # Check if the current node have the money to send to other node
+                    unspent_bitcoin_keys = self.get_unspent_bitcoin_keys(tot_amt + self.transaction_charges)
+
+                    # If there is not enough money available for transaction
+                    if len(unspent_bitcoin_keys)==0:
+                        if util.print_logs():
+                            print("Node",self.idx, "have not enough money to send.")
+
+                    # If enough money is available for transaction
+                    else:
+                        # it will refer to the previous output
+                        tx_inputs = []
+                        # current output
+                        tx_outputs = []
+
+                        for u_key in (unspent_bitcoin_keys):
+                            tx_inputs.append(Inputs(self.unspent_bitcoin[u_key][2],self.unspent_bitcoin[u_key][3]))
+
+                        for i in range(len(lis_reciever)):
+                            self.message_common_list.append(self.idx)
+                            tx_outputs.append( Outputs(self.nodeid_public_key[lis_reciever[i]],lis_amount[i]))
+
+                        temp_amt = 0
+                        for u_key in (unspent_bitcoin_keys):
+                            temp_amt+=self.unspent_bitcoin[u_key][1]
+
+                        tx_outputs.append(Outputs(self.nodeid_public_key[self.idx],temp_amt-tot_amt-self.transaction_charges))
+
+                        # create the transaction to do
+                        transaction = Transaction.Transaction(tx_inputs, tx_outputs, self.public_key, self.private_key, "COIN-TXN")
+
+                        # add this transaction to the miner
+                        miner.current_transactions.append(transaction)
+
+                        # Broadcast this transaction to every node
+                        for i in range(self.node_cnt):
+                            if i != self.idx:
+                                q_list[i].put(["TXN",transaction,self.idx,i])
+
+                        self.prev_trans_key = unspent_bitcoin_keys
+                        self.prev_trans_verified = False
+                        self.prev_trans_time = time.time()
+                
+                prob = self.probability()
+                # create a block
+                block_creation_gap = time.time()-self.last_block_creation_time() 
+                if (prob and len(self.message_common_list)>=self.message_limit):
                     
-                    if util.print_logs():
-                        for i in range(len(reciever)):
-                            print("Node",sender, "is sending",amount[i],"btc to Node",reciever[i],".")
-                        
-                
-                tot_amt = 0
-                for m in range(len(reciever)):
-                    tot_amt+=amount[m]
-                
-                # Check if the current node have the money to send to other node
-                unspent_bitcoin_keys = self.get_unspent_bitcoin_keys(amount + self.transaction_charges)
-                
-                # If there is not enough money available for transaction
-                if len(unspent_bitcoin_keys)==0:
-                    if util.print_logs():
-                        print("Node",self.idx, "have not enough money to send.")
-                
-                # If enough money is available for transaction
-                else:
-                    # to do 
-                
-                
-                
-                
+                    
+                    
                 
                 # Calculating time spend till now by the node and halt the process after timeout
                 if util.get_debug():
                     print("# Start time=",self.start_time,": Total time=",util.get_total_time(),": Time spent=",time.time()-self.start_time)
                 
-                if(time.time()-self.start_time>util.get_total_time()):
+                if(time.time()-self.start_time>=util.get_total_time()):
                     if util.print_logs():
                         print("Node",self.idx,"is halting due to timeout")
                         print("Printing the logs of the Node",self.idx)
                         self.debug()
                     break
-                
+    
     def update_bitcoin_details(self , block):
         
         if util.get_debug():
@@ -313,7 +360,7 @@ class Node():
                             self.bitcoin = self.bitcoin + out.amount
                             self.unspent_bitcoin[temp_key] = [None, out.amount, txnid, itr]
                         
-                        # if the transsaction type is not COIN-BASE            
+                        # if the transaction type is not COIN-BASE            
                         else:
                             #If money is recieved from some other node
                             sender = self.dict_public_key_nodeid[txn.public_key]
@@ -345,7 +392,7 @@ class Node():
                         del self.unspent_bitcoin[temp_key]
                         
                         # if detail of the output is present in the input list then key will match
-                        if self.prev_trans_key != None and temp_key == self.prev_trans_key:
+                        if len(self.prev_trans_key) != 0 and temp_key in self.prev_trans_key:
                             # If key match then this means it is validated
                             self.prev_trans_verified = True
                             self.last_trans_key = None
@@ -520,6 +567,7 @@ class Node():
         txn_thread = Thread(target=self.start_transactions(q_list,miner), name='Txn:'+str(self.idx))
         txn_thread.start()
         txn_thread.join()
+        
         
         #self.start_transactions(q_list,miner)
         

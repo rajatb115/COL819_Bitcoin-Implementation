@@ -38,7 +38,7 @@ if __name__ == "__main__":
     
     # Creating nodes for the bitcoin
     nodes = []
-    message_limit = 3
+    message_limit = 10
     for i in range(node_cnt):
         nodes.append(Node.Node(i,node_cnt,pow_zeros,leaf_sz,common_list,message_limit))
         

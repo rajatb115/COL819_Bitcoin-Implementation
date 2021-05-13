@@ -190,10 +190,10 @@ def get_smart_contract_deduction():
     return 50
 
 def get_multi_smart_contract():
-    return True
+    return False
 
 def get_multi_transactions():
-    return True
+    return False
 
 def get_random_multi_transactions():
     return random.randint(1,4)
@@ -210,13 +210,13 @@ def find_random_reciever(tot_nodes,curr_node):
 
 # Max time for which each node will run
 def get_total_time():
-    return 10
+    return 30
 
 # for debuging and printing logs of the program
 def print_logs():
     return True
 def get_debug():
-    return True
+    return False
 
 
 '''
