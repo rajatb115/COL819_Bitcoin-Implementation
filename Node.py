@@ -181,6 +181,8 @@ class Node():
                             
                 if message[0] == "BLOCK":
                     
+                    self.last_block_creation_time = time.time()
+                    
                     if util.get_debug():
                         print("# This is new block message at Node =",self.idx)
                      
@@ -224,7 +226,8 @@ class Node():
                                 print("Node",sender, "is sending",lis_amount[0],"btc to Node",lis_reciever[0],"as a part of smart contract.")
                                 print("")
 
-                        else:
+                        elif(len(self.message_common_list)<=self.message_limit):
+                            
                             #reciever.append(util.find_random_reciever(self.node_cnt,self.idx))
                             sender = self.idx
                             #amount.append(util.get_random_amount())
@@ -235,7 +238,7 @@ class Node():
                                 for i in range(len(lis_reciever)):
                                     print("Node",sender, "is sending",lis_amount[i],"btc to Node",lis_reciever[i],".")
 
-                    else:
+                    elif (len(self.message_common_list)<=self.message_limit):
                         #reciever = util.find_random_reciever(self.node_cnt,self.idx)
                         sender = self.idx
                         #amount = util.get_random_amount()
@@ -244,58 +247,68 @@ class Node():
                         if util.print_logs():
                             for i in range(len(lis_reciever)):
                                 print("Node",sender, "is sending",lis_amount[i],"btc to Node",lis_reciever[i],".")
+                    
+                    
+                    if (len(self.message_common_list)<=self.message_limit):
+                        tot_amt = 0
+                        for m in range(len(lis_reciever)):
+                            tot_amt+=lis_amount[m]
 
-                    tot_amt = 0
-                    for m in range(len(lis_reciever)):
-                        tot_amt+=lis_amount[m]
+                        # Check if the current node have the money to send to other node
+                        unspent_bitcoin_keys = self.get_unspent_bitcoin_keys(tot_amt + self.transaction_charges)
 
-                    # Check if the current node have the money to send to other node
-                    unspent_bitcoin_keys = self.get_unspent_bitcoin_keys(tot_amt + self.transaction_charges)
+                        # If there is not enough money available for transaction
+                        if len(unspent_bitcoin_keys)==0:
+                            if util.print_logs():
+                                print("Node",self.idx, "have not enough money to send.")
 
-                    # If there is not enough money available for transaction
-                    if len(unspent_bitcoin_keys)==0:
-                        if util.print_logs():
-                            print("Node",self.idx, "have not enough money to send.")
+                        # If enough money is available for transaction
+                        else:
+                            # it will refer to the previous output
+                            tx_inputs = []
+                            # current output
+                            tx_outputs = []
 
-                    # If enough money is available for transaction
-                    else:
-                        # it will refer to the previous output
-                        tx_inputs = []
-                        # current output
-                        tx_outputs = []
+                            for u_key in (unspent_bitcoin_keys):
+                                tx_inputs.append(Inputs(self.unspent_bitcoin[u_key][2],self.unspent_bitcoin[u_key][3]))
 
-                        for u_key in (unspent_bitcoin_keys):
-                            tx_inputs.append(Inputs(self.unspent_bitcoin[u_key][2],self.unspent_bitcoin[u_key][3]))
+                            for i in range(len(lis_reciever)):
+                                self.message_common_list.append(self.idx)
+                                tx_outputs.append( Outputs(self.nodeid_public_key[lis_reciever[i]],lis_amount[i]))
 
-                        for i in range(len(lis_reciever)):
-                            self.message_common_list.append(self.idx)
-                            tx_outputs.append( Outputs(self.nodeid_public_key[lis_reciever[i]],lis_amount[i]))
+                            temp_amt = 0
+                            for u_key in (unspent_bitcoin_keys):
+                                temp_amt+=self.unspent_bitcoin[u_key][1]
 
-                        temp_amt = 0
-                        for u_key in (unspent_bitcoin_keys):
-                            temp_amt+=self.unspent_bitcoin[u_key][1]
+                            tx_outputs.append(Outputs(self.nodeid_public_key[self.idx],temp_amt-tot_amt-self.transaction_charges))
 
-                        tx_outputs.append(Outputs(self.nodeid_public_key[self.idx],temp_amt-tot_amt-self.transaction_charges))
+                            # create the transaction to do
+                            transaction = Transaction.Transaction(tx_inputs, tx_outputs, self.public_key, self.private_key, "COIN-TXN")
 
-                        # create the transaction to do
-                        transaction = Transaction.Transaction(tx_inputs, tx_outputs, self.public_key, self.private_key, "COIN-TXN")
+                            # add this transaction to the miner
+                            miner.current_transactions.append(transaction)
 
-                        # add this transaction to the miner
-                        miner.current_transactions.append(transaction)
+                            # Broadcast this transaction to every node
+                            for i in range(self.node_cnt):
+                                if i != self.idx:
+                                    q_list[i].put(["TXN",transaction,self.idx,i])
 
-                        # Broadcast this transaction to every node
-                        for i in range(self.node_cnt):
-                            if i != self.idx:
-                                q_list[i].put(["TXN",transaction,self.idx,i])
-
-                        self.prev_trans_key = unspent_bitcoin_keys
-                        self.prev_trans_verified = False
-                        self.prev_trans_time = time.time()
+                            self.prev_trans_key = unspent_bitcoin_keys
+                            self.prev_trans_verified = False
+                            self.prev_trans_time = time.time()
+                
                 
                 prob = self.probability()
                 # create a block
-                block_creation_gap = time.time()-self.last_block_creation_time() 
+                block_creation_gap = time.time()-self.last_block_creation_time
+                
                 if (prob and len(self.message_common_list)>=self.message_limit):
+                    
+                    if util.print_logs():
+                        print("Node",self.idx,"is started creating the block for the following  transactions:")
+                        
+                        for indx, tx in enumerate(miner.current_transactions):
+                            print(indx,":",tx)
                     
                     
                     
@@ -507,6 +520,8 @@ class Node():
             genesis_blockchain = miner.blockchain
             self.update_bitcoin_details(genesis_blockchain.blockchain[0])
             
+            self.last_block_creation_time = time.time()
+            
             # Pushing the genesis block into stack so that all the nodes can read it
             for i in range(self.node_cnt):
                 if i != 0:
@@ -556,6 +571,8 @@ class Node():
                             
                         genesis_blockchain = miner.blockchain
                         self.update_bitcoin_details(genesis_blockchain.blockchain[0])
+                        
+                        self.last_block_creation_time = time.time()
             if util.get_debug():
                 self.debug()
                     
