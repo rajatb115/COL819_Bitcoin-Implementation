@@ -13,8 +13,10 @@ def create_hash(s):
     uni = s.encode()
     hash_object = hashlib.sha256(uni)
     hex_dig = hash_object.hexdigest()
-    if get_debug():
-        print(hex_dig)
+    
+    #if get_debug():
+    #    print(hex_dig)
+    
     return(hex_dig)
 
 def RSA_to_key(key):
@@ -193,7 +195,7 @@ def get_multi_smart_contract():
     return False
 
 def get_multi_transactions():
-    return False
+    return True
 
 def get_random_multi_transactions():
     return random.randint(1,4)
@@ -210,7 +212,7 @@ def find_random_reciever(tot_nodes,curr_node):
 
 # Max time for which each node will run
 def get_total_time():
-    return 30
+    return 50
 
 # for debuging and printing logs of the program
 def print_logs():

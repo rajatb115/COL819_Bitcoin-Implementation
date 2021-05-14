@@ -35,16 +35,21 @@ if __name__ == "__main__":
     
     # creating common list for all the nodes
     common_list = multiprocessing.Manager().list()
+    token = multiprocessing.Manager().list()
     
     # Creating nodes for the bitcoin
     nodes = []
-    message_limit = 10
+    message_limit = 5
     for i in range(node_cnt):
-        nodes.append(Node.Node(i,node_cnt,pow_zeros,leaf_sz,common_list,message_limit))
+        nodes.append(Node.Node(i,node_cnt,pow_zeros,leaf_sz,common_list,message_limit,token))
         
     # creating multi-threads using the following funtion
     node_process = []
     for i in range(node_cnt):
+        
+        if util.print_logs():
+            print("Node",i,"is being created.")
+        
         process = multiprocessing.Process(target=nodes[i].run_node,args = (q_list,))
         node_process.append(process)
         

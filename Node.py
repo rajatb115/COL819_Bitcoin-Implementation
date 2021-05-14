@@ -37,7 +37,7 @@ class Outputs():
 
 class Node():
     
-    def __init__(self,idx,node_cnt,pow_zeros,leaf_sz,message_common_list,message_limit):
+    def __init__(self,idx,node_cnt,pow_zeros,leaf_sz,message_common_list,message_limit,token):
         
         # common details about a node
         self.idx = idx
@@ -46,6 +46,10 @@ class Node():
         self.leaf_sz = leaf_sz
         self.message_common_list = message_common_list
         self.message_limit = message_limit
+        self.token = token
+        
+        if(len(self.token)==0):
+            self.token.append(True)
         
         # block details
         self.block_create_reward = util.get_block_create_reward()
@@ -68,6 +72,8 @@ class Node():
         self.prev_trans_key = []
         self.prev_trans_verified = False
         self.prev_trans_time = 0
+        
+        self.kk = True
         
         if util.get_debug():
             self.debug()
@@ -170,10 +176,6 @@ class Node():
                         if util.get_debug():
                             print("# Trasaction is verified at Node =",self.idx)
                         
-                        ##################################
-                        # check for duplicate transaction#
-                        ##################################
-                        
                         miner.current_transactions.append(message_txn)
                     
                     else:
@@ -182,21 +184,21 @@ class Node():
                             
                 if message[0] == "BLOCK":
                     
-                    self.last_block_creation_time = time.time()
-                    
-                    if util.get_debug():
+                    if util.get_debug() or util.print_logs():
                         print("# This is new block message at Node =",self.idx)
-                     
-                    ######################################
-                    # to do add a block in the blockchain#
-                    ######################################
+
+                    res = miner.add_new_block(message[1])
+                    self.kk=True
+                    
+                    if res:
+                        self.last_block_creation_time = time.time()
             
             except:
                 
                 # probablility that this node will create a transaction or not
                 prob = self.probability()
                 
-                if prob and len(self.message_common_list)<=self.message_limit:
+                if prob and len(self.message_common_list) <= self.message_limit and self.kk:            
                     
                     lis_reciever = []
                     sender = self.idx
@@ -209,7 +211,7 @@ class Node():
                     smart_contract_nodes =  util.get_smart_contract_nodes()
 
                     # Check if current node is participating in the smart contract
-                    if self.idx in smart_contract_nodes.keys() and temp and len(self.message_common_list)<=self.message_limit:
+                    if self.idx in smart_contract_nodes.keys() and temp and len(self.message_common_list) <= self.message_limit:
 
                         if util.get_smart_contract() and self.find_cash() >= util.get_smart_contract_balance() and len(self.message_common_list)<=self.message_limit:
 
@@ -251,8 +253,10 @@ class Node():
                                 print("Node",sender, "is sending",lis_amount[i],"btc to Node",lis_reciever[i],".")
                     
                     
-                    if (len(self.message_common_list)<=self.message_limit):
+                    if (len(self.message_common_list) <= self.message_limit):
+                        
                         tot_amt = 0
+                        
                         for m in range(len(lis_reciever)):
                             tot_amt+=lis_amount[m]
 
@@ -270,7 +274,7 @@ class Node():
                             tx_inputs = []
                             # current output
                             tx_outputs = []
-
+                            
                             for u_key in (unspent_bitcoin_keys):
                                 tx_inputs.append(Inputs(self.unspent_bitcoin[u_key][2],self.unspent_bitcoin[u_key][3]))
 
@@ -298,19 +302,23 @@ class Node():
                             self.prev_trans_key = unspent_bitcoin_keys
                             self.prev_trans_verified = False
                             self.prev_trans_time = time.time()
+                            
+                            self.kk=False
                 
                 
                 prob = self.probability()
                 # create a block
                 block_creation_gap = time.time()-self.last_block_creation_time
                 
-                if (prob and len(self.message_common_list)>=self.message_limit):
+                if (prob and len(self.message_common_list) > self.message_limit and self.token[0] == True):
                     
                     if util.print_logs():
-                        print("Node",self.idx,"is started creating the block for the following  transactions:")
+                        print("Node",self.idx,"is started creating the block for the following transactions:")
                         
-                        for indx, tx in enumerate(miner.current_transactions):
-                            print(indx,":",tx)
+                        if util.get_debug():
+                            for indx, tx in enumerate(miner.current_transactions):
+                                print(indx,":",tx.txn_input)
+                                print(indx,":",tx.txn_output)
                     
                     # now creating a new block
                     # to create a block first add the block creation reward transaction or other rewards
@@ -322,8 +330,9 @@ class Node():
                         
                         for i in trans.txn_input:
                             amt = miner.get_amount(i)
-                            
-                            total_inputs  = total_inputs + amt
+                            #print("amt =",amt)
+                            if amt !=None:
+                                total_inputs  = total_inputs + amt
                         
                         for o in trans.txn_output:
                             total_outputs = total_outputs + o.amount
@@ -337,14 +346,14 @@ class Node():
                     new_output = []
                     new_output.append(Outputs(self.public_key,rewards))
                     
-                    new_transaction = Transaction.Transaction(new_input, new_output, self.public_key, self.private_key, "COIN-BASE")
+                    new_transaction = Transaction.Transaction(new_input, new_output, self.public_key, self.private_key, "REWARD")
                     
                     # creating new block
                     new_block = Block.Block(self.pow_zeros, self.leaf_sz, miner.current_transactions + [new_transaction],"NORMAL-BLOCK",miner.blockchain.blockchain[-1].current_block_hash, len(miner.blockchain.blockchain))
                     
                     if new_block:
-                        if util.get_debug():
-                            print("# Checking if some other node has already created the current block.")
+                        if util.print_logs():
+                            print("Node",self.idx," Checking if some other node has already created the current block.")
                         
                         temp1 = True
                         status = False
@@ -353,10 +362,11 @@ class Node():
                             try:
                                 message = q_list[self.idx].get(block=True,timeout=1)
                                 if message[0] == "BLOCK":
-                                    if util.get_debug():
-                                        print("# Already some other node won the race. (Node)",message[2])
+                                    if  util.print_logs():
+                                        print("Already some other node won the race. (Node)",message[2])
 
                                     miner.add_new_block(message[1])
+                                    self.kk = True
                                     temp1 = False
                                     status = True
                                 else:
@@ -372,38 +382,52 @@ class Node():
                         # If Block message is not found in the queue
                         if status == False:
                             # send the current mined block to all the nodes
-                            if util.get_debug():
-                                print("# Sending the block to all the nodes.")
-                                    
-                            for i in range(self.node_cnt):
+                            if(self.token[0] == True):
+                                self.token[0] = False
+                                if util.print_logs():
+                                    print("# Node",self.idx,"Sending the block to all the nodes.")
+
+                                for i in range(self.node_cnt):
+
+                                    if i != self.idx:
+                                        q_list[i].put(["BLOCK",new_block,self.idx])
+                                miner.add_new_block(new_block)
                                 
-                                if i != self.idx:
-                                    q_list[i].put(["BLOCK",new_block,self.idx])
-                            miner.add_new_block(new_block)
+                                time.sleep(2)
+                                
+                                for ls in self.message_common_list:
+                                    #print(len(self.message_common_list))
+                                    self.message_common_list.pop(0)
+                                
+                                self.kk=True
+                                
+                                self.token[0] = True
                     
                     is_new_confirmed = miner.is_verified_block()
                     if is_new_confirmed:
                         
                         confirmed_block_idx = miner.blockchain.index_of_confirmed_block
                         
-                        utxo_transaction = miner.blockcahin.blockchain[confirmed_block_idx].transaction
+                        utxo_transaction = miner.blockchain.blockchain[confirmed_block_idx].transaction
                         miner.blockchain.add_UTXO(utxo_transaction)
                         miner.blockchain.delete_UTXO(utxo_transaction)
                         
                         
                         self.update_bitcoin_details(miner.blockchain.blockchain[confirmed_block_idx])
-                    if util.print_logs():
-                        print("Node",self.idx,"has",self.bitcoin)
+                    if util.get_debug():
+                        print("Node",self.idx,"has",self.bitcoin,"btc.")
                         
                 # Calculating time spend till now by the node and halt the process after timeout
                 if util.get_debug():
                     print("# Start time=",self.start_time,": Total time=",util.get_total_time(),": Time spent=",time.time()-self.start_time)
                 
                 if(time.time()-self.start_time>=util.get_total_time()):
+                    
                     if util.print_logs():
                         print("Node",self.idx,"is halting due to timeout")
-                        print("Printing the logs of the Node",self.idx)
-                        self.debug()
+                        print("Node",self.idx ,"has bitcoins",self.bitcoin,"btc")
+                        #print("Printing the logs of the Node",self.idx)
+                        #self.debug()
                     break
     
     def update_bitcoin_details(self , block):
@@ -439,18 +463,22 @@ class Node():
                     
                         # if the transaction type is COIN-BASE then this means
                         # this is node creation amount + genesis block creation coin.
-                        if txn.txn_type == "COIN-BASE":
+                        if txn.txn_type == "COIN-BASE" or txn.txn_type=="REWARD":
                             
                             # If it is node 0 then it will have initial amount + block creation reward
-                            if self.idx==0:
+                            if self.idx==0 and txn.txn_type == "COIN-BASE" :
                                 if (util.print_logs()):
                                     print("Node "+str(self.idx)+" recieved " +str(out.amount-self.block_create_reward)+ " btc as initial node amount.")
                                     print("Node "+str(self.idx)+" recieved "+str(self.block_create_reward) + " btc as Genesis block creation reward.")
                         
                             # If the node is not node 0 then it won't recieve the block creation reward
-                            else:
+                            elif txn.txn_type == "COIN-BASE":
                                 if (util.print_logs()):
                                     print("Node "+str(self.idx)+" recieved " +str(out.amount)+ " btc as initial node amount.")
+                                    
+                            else:
+                                if (util.get_debug()):
+                                    print("Node "+str(self.idx)+" recieved " +str(out.amount)+ " btc as reward.")
                                     
                             self.bitcoin = self.bitcoin + out.amount
                             self.unspent_bitcoin[temp_key] = [None, out.amount, txnid, itr]
@@ -459,12 +487,16 @@ class Node():
                         else:
                             #If money is recieved from some other node
                             sender = self.dict_public_key_nodeid[txn.public_key]
+
                             if (self.idx != sender):
                                 if (util.print_logs()):
                                     print("Node "+str(self.idx)+" recieved "+str(out.amount)+" from Node "+str(sender))
+                            else:
+                                if (util.print_logs()):
+                                    print("Node "+str(self.idx)+" recieved "+str(out.amount))
                                     
-                                self.bitcoin = self.bitcoin + out.amount
-                                self.unspent_bitcoin[temp_key] = [txn.public_key, out.amount, txnid, itr]
+                            self.bitcoin = self.bitcoin + out.amount
+                            self.unspent_bitcoin[temp_key] = [txn.public_key, out.amount, txnid, itr]
                                 
                     else:
                         if util.print_logs():
@@ -474,17 +506,20 @@ class Node():
             sender = self.dict_public_key_nodeid[txn.public_key]
             reciever = self.public_key
             # for coinbase transaction the input is none so avoid that 
-            if (sender != reciever):
-                if(txn.txn_type != "COIN-BASE"):
+            if (txn.public_key == reciever):
+                if(txn.txn_type != "COIN-BASE" and txn.txn_type != "REWARD"):
                     '''
                     check all the input transactions of the block and subtract the amount
                     '''
                     for itr, inp in enumerate(txn.txn_input):
-                        temp_key = str(itr)+str(":")+str(inp.prev_txid)
+
+                        temp_key = str(inp.txr_index)+str(":")+str(inp.prev_txid)
                         
-                        # subtract the bitcoin for the above key 
-                        self.bitcoin = self.bitcoin - self.unspent_bitcoin[temp_key][1]
-                        del self.unspent_bitcoin[temp_key]
+                        #print("unspent",self.unspent_bitcoin.keys())
+                        if temp_key in self.unspent_bitcoin.keys():
+                            #print("Found key" , self.unspent_bitcoin[temp_key][1])
+                            self.bitcoin = self.bitcoin - self.unspent_bitcoin[temp_key][1]
+                            del self.unspent_bitcoin[temp_key]
                         
                         # if detail of the output is present in the input list then key will match
                         if len(self.prev_trans_key) != 0 and temp_key in self.prev_trans_key:
@@ -553,6 +588,9 @@ class Node():
         # node 0 is creating the genesis block
         if(self.idx == 0):
             
+            if util.print_logs():
+                print("Node",self.idx,"is responsible for creating genesis block.")
+            
             if util.get_debug():
                 print("idx of the current node :",str(self.idx))
             
@@ -620,7 +658,7 @@ class Node():
         # respective blockchain list
         else:
             message = None
-            temp1 = True
+            temp = True
             while temp:
                 try:
                     message = q_list[self.idx].get(block=True, timeout=5)
@@ -638,7 +676,7 @@ class Node():
                         
                     # if this node got the message then stop the while loop
                     if message != None:
-                        temp1 = False
+                        temp = False
                     
                     miner.blockchain = message[1]
                     
@@ -648,13 +686,14 @@ class Node():
                     # Now verify the block which is recieved
                     if (miner.is_valid_block("GENESIS-BLOCK",None)):
                         
-                        if util.print_logs():
+                        if util.get_debug():
                             print("Node",self.idx,"Genesis block transactions are verified.")
                             
                         genesis_blockchain = miner.blockchain
                         self.update_bitcoin_details(genesis_blockchain.blockchain[0])
                         
                         self.last_block_creation_time = time.time()
+                        
             if util.get_debug():
                 self.debug()
                     
@@ -666,3 +705,5 @@ class Node():
         txn_thread = Thread(target=self.start_transactions(q_list,miner), name='Txn:'+str(self.idx))
         txn_thread.start()
         txn_thread.join()
+        #self.start_transactions(q_list,miner)
+        

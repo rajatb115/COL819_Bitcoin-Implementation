@@ -137,6 +137,6 @@ class Blockchain():
                         key = self.UTXO(inp.txr_index, inp.prev_txid)
                         self.utxo.remove(key)
         except:
-            util.get_debug():
+            if util.get_debug():
                 print("# Something went wrong.")
             

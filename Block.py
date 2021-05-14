@@ -76,8 +76,8 @@ class Block():
         # check if the number of pow_zeros digit of message_hash is equal to zero
         while(self.check_pow_zeros(message_hash) == False):
 
-            if util.get_debug():
-                print("Testing nounce : ",str(temp_nounce)," ; Temp hash of message : ",str(message_hash))
+            #if util.get_debug():
+                #print("Testing nounce : ",str(temp_nounce)," ; Temp hash of message : ",str(message_hash))
             
             temp_nounce = temp_nounce +1
             message_hash = util.create_hash(message + " " + str(temp_nounce))

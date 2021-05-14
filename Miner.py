@@ -37,26 +37,49 @@ class Miner():
         print("\n")
     
     
+    def add_new_block(self, block):
+        
+        # check if block is geniune or not check its transactions
+        for txn in block.transaction:
+            for inps in txn.txn_input:
+                if txn.txn_type != "COIN-BASE"  and  txn.txn_type != "REWARD":
+                    if self.blockchain.UTXO(inps.txr_index, inps.prev_txid) not in self.blockchain.utxo:
+                        return False
+            if (txn.check_sign_transaction() == False):
+                return False
+                
+        
+        # check if block is geniune or not check its proof of work 
+        if block.is_valid_proof_of_work():
+            self.blockchain.height_of_current_block = self.blockchain.height_of_current_block +1
+            self.blockchain.blockchain.append(block)
+            
+            
+            #print("lis ll",len(self.current_transactions))
+            
+            for txn in block.transaction:
+                for idx , tx in enumerate(self.current_transactions):
+                    if tx.txn_id == txn.txn_id:
+                        self.current_transactions.pop(idx)
+            
+            #print("lis l",len(self.current_transactions))
+            return True
+        return False
+            
+    
     def get_amount(self,ins):
         for i in range(self.blockchain.index_of_confirmed_block+1):
             block = self.blockchain.blockchain[i]
             for txn in block.transaction:
                 if txn.txn_id == ins.prev_txid:
                     
-                    if util.get_debug():
+                    if util.get_debug(): 
                         print("# Found the transaction id")
                         
                     return txn.txn_output[ins.txr_index].amount
                 
-    
-    def add_new_block(self, block):
-        
-        # check id block is geniune or not 
-        
-    
-                
     def is_verified_block(self):
-        if (self.blockchain.height_of_current_block - self.blockchain.index_of_confirmed_block >= 2):
+        if (self.blockchain.height_of_current_block - self.blockchain.index_of_confirmed_block >= 1):
             self.blockchain.index_of_confirmed_block = self.blockchain.height_of_current_block
             return True
         return False
@@ -74,7 +97,7 @@ class Miner():
             # verify the transactions is valid or not
             temp_pow_isvalid = self.blockchain.blockchain[0].is_valid_proof_of_work()
             
-            if util.print_logs():
+            if util.get_debug():
                 print("# Miner",self.idx,":Proof of work validity :",temp_pow_isvalid)
             
             #temp_txn_is_valid = self.blockchain.isValid_transaction(blockchain[0])
@@ -82,7 +105,7 @@ class Miner():
             for txn in self.blockchain.blockchain[0].transaction:
                 temp_txn_is_valid = temp_txn_is_valid and self.blockchain.isValid_transaction(txn)
                     
-            if util.print_logs():
+            if util.get_debug():
                 print("# Miner",self.idx,":Proof of transaction validity :",temp_txn_is_valid)
             
             return (temp_pow_isvalid and temp_txn_is_valid)

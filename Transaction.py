@@ -66,4 +66,4 @@ class Transaction():
     
     def check_sign_transaction(self):
         key = util.RSA_to_key(self.public_key)
-        return util.verify_message(self.txn_message(),self.self.txn_sign,key)
+        return util.verify_message(self.txn_message(), self.txn_sign, key)
