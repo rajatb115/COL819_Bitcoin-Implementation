@@ -1,5 +1,6 @@
 import time
 import util
+import sys
 
 class Transaction():
     def __init__(self, txn_input, txn_output, public_key, private_key, txn_type):
@@ -67,3 +68,22 @@ class Transaction():
     def check_sign_transaction(self):
         key = util.RSA_to_key(self.public_key)
         return util.verify_message(self.txn_message(), self.txn_sign, key)
+    
+    def transaction_size(self):
+        size = 0
+        
+        size+= sys.getsizeof(self.txn_output)
+        size+= sys.getsizeof(self.txn_input)
+        # here public key is the sender which send money to other nodes
+        size+= sys.getsizeof(self.public_key) 
+        size+= sys.getsizeof(self.private_key )
+        size+= sys.getsizeof(self.txn_type) 
+        size+= sys.getsizeof(self.txn_time) 
+        
+        # sign the transaction
+        size+= sys.getsizeof(self.txn_sign)
+        
+        # get the hash of the transaction
+        size+= sys.getsizeof(self.txn_id)
+        return size
+        

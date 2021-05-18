@@ -1,4 +1,5 @@
 import util
+import sys
 
 class Block():
     def __init__(self, pow_zeros, leaf_sz, transaction, b_type, prev_block_hash, index):
@@ -101,6 +102,26 @@ class Block():
             print("# proof of work validity :",self.check_pow_zeros(message_hash))
         
         return self.check_pow_zeros(message_hash)
+      
+    def block_size(self):
+        size = 0
+        size+= sys.getsizeof(self.pow_zeros)
+        size+= sys.getsizeof(self.leaf_sz) 
+        
+        for tx in self.transaction:
+            size+= tx.transaction_size()
+        
+        size+= sys.getsizeof(self.b_type)
+        size+= sys.getsizeof(self.prev_block_hash)
+        size+= sys.getsizeof(self.merkle_tree)
+        size+= sys.getsizeof(self.index)
+        size+= sys.getsizeof(self.current_block_hash)
+        size+= sys.getsizeof(self.root_merkle_tree)
+        size+= sys.getsizeof(self.current_block_hash)
+        size+= sys.getsizeof(self.nounce)
+        size+= sys.getsizeof(self.parent)
+        size+= sys.getsizeof(self.child)
+        
+        return size
     
-            
-            
+    

@@ -5,17 +5,30 @@ import hashlib
 from Crypto.PublicKey import RSA
 from binascii import hexlify
 from Crypto import Random
-from Crypto.Hash import SHA256
+from Crypto.Hash import SHA256,SHA1,SHA224,SHA384,SHA512
 from Crypto.Signature import PKCS1_v1_5
 import random
 
+
+def get_enc():
+    return SHA256.new()
+    #return SHA1.new()
+    #return SHA224.new()
+    #return SHA384.new()
+    #return SHA512.new()
+
 def create_hash(s):
     uni = s.encode()
-    hash_object = hashlib.sha256(uni)
+    
+    #hash_object = hashlib.sha256(uni)
+    hash_object = get_enc()
+    
+    hash_object.update(uni)
+    
     hex_dig = hash_object.hexdigest()
     
-    #if get_debug():
-    #    print(hex_dig)
+    if get_debug():
+        print(hex_dig)
     
     return(hex_dig)
 
@@ -63,7 +76,7 @@ def public_private_key():
 # to sign a message. here pri_key is in bytes
 def sign_message(message,pri_key):
     signer = PKCS1_v1_5.new(pri_key)
-    d = SHA256.new()
+    d = get_enc()
     d.update(message.encode())
     sig = signer.sign(d)
     
@@ -74,7 +87,7 @@ def sign_message(message,pri_key):
     
 # to verify the signed message
 def verify_message(message,sign,pub_key):
-    message_digest = SHA256.new()
+    message_digest = get_enc()
     message_digest.update(message.encode())
     verifier = PKCS1_v1_5.new(pub_key)
     verified = verifier.verify(message_digest, sign)
@@ -89,6 +102,8 @@ def create_merkle_tree(tot_leaves,leaf_sz):
     if get_debug():
         print("# total number of leaves :",len_leaves)
         print("# leaves :",leaves)
+    #print("# total number of leaves :",len_leaves)
+    #print("# leaves :",leaves)
     
     '''
     Check if leaves are in order of leaf_sz if not then replicate the last
@@ -192,10 +207,10 @@ def get_smart_contract_deduction():
     return 50
 
 def get_multi_smart_contract():
-    return False
+    return True
 
 def get_multi_transactions():
-    return True
+    return False
 
 def get_random_multi_transactions():
     return random.randint(1,4)
@@ -212,7 +227,7 @@ def find_random_reciever(tot_nodes,curr_node):
 
 # Max time for which each node will run
 def get_total_time():
-    return 50
+    return 500
 
 # for debuging and printing logs of the program
 def print_logs():

@@ -1,5 +1,6 @@
 import util
 import Block
+import sys
 
 class Blockchain():
     def __init__(self, pow_zeros, leaf_sz):
@@ -13,6 +14,7 @@ class Blockchain():
         
         if util.get_debug():
             self.debug()
+        
         
     def debug(self):
         print("")
@@ -139,4 +141,10 @@ class Blockchain():
         except:
             if util.get_debug():
                 print("# Something went wrong.")
-            
+                
+    
+    def blockchain_size(self):
+        size = 0
+        for blk  in self.blockchain:
+            size+=blk.block_size()
+        return size

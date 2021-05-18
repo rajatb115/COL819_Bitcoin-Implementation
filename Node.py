@@ -6,6 +6,7 @@ import Transaction
 from threading import Thread, Event
 import random
 import Block
+import time
 
 def get_keys():
     return util.public_private_key()
@@ -349,7 +350,14 @@ class Node():
                     new_transaction = Transaction.Transaction(new_input, new_output, self.public_key, self.private_key, "REWARD")
                     
                     # creating new block
+                    
+                    # random
+                    block_cs_time = time.time()
+                    
                     new_block = Block.Block(self.pow_zeros, self.leaf_sz, miner.current_transactions + [new_transaction],"NORMAL-BLOCK",miner.blockchain.blockchain[-1].current_block_hash, len(miner.blockchain.blockchain))
+                    
+                    print("Block creation time :",time.time()-block_cs_time)
+                    print("size of blockchain :",new_block.block_size())
                     
                     if new_block:
                         if util.print_logs():
@@ -391,9 +399,14 @@ class Node():
 
                                     if i != self.idx:
                                         q_list[i].put(["BLOCK",new_block,self.idx])
+                                        
+                                ## random
+                                # print("size of blockchain :",new_block.block_size())
                                 miner.add_new_block(new_block)
                                 
                                 time.sleep(2)
+                                
+                                
                                 
                                 for ls in self.message_common_list:
                                     #print(len(self.message_common_list))
@@ -658,10 +671,12 @@ class Node():
         # respective blockchain list
         else:
             message = None
+            found = False
             temp = True
             while temp:
                 try:
                     message = q_list[self.idx].get(block=True, timeout=5)
+                    found = True
                     if util.get_debug():
                         if message != None:
                             print("# Node",self.idx,"recieved some message.")
@@ -672,7 +687,7 @@ class Node():
                         print("Node",self.idx,"Waiting for the Genesis block.")
                         
                 # check if the message is about genesis block or not
-                if message[0]=="GENESIS-BLOCK":
+                if message[0]=="GENESIS-BLOCK" and found:
                         
                     # if this node got the message then stop the while loop
                     if message != None:

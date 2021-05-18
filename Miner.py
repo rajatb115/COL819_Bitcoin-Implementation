@@ -1,4 +1,5 @@
 import util
+import sys
 
 class Miner():
     def __init__(self, idx, node_cnt, pow_zeros, leaf_sz, private_key, node_public_key, block_create_reward, block_create_time, transaction_charges):
@@ -114,3 +115,5 @@ class Miner():
             # have to complete to do
             print("This is not a genesis block")
             
+    def blockchain_size(self):
+        return sys.getsizeof(self.blockchain)
