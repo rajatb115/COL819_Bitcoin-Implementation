@@ -4,4 +4,4 @@ Code and analysis of Bitcoin Implementation. This project is an assignment of th
 
 To run the Simulation use the following command </br>
 
-```python3 Miners <Number of nodes> <Proof of work zeros> <Arity of Merkle tree> ```
+```python3 Miners.py <Number of nodes> <Proof of work zeros> <Arity of Merkle tree> ```
